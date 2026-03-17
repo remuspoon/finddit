@@ -42,14 +42,14 @@ The app does not generate, modify, or reproduce user-authored content beyond sur
 
 If you experience issues with the app or believe it has violated Reddit's Devvit Rules, please:
 
-- Open an issue at https://github.com/remuspoon/reddit-trauma-bot/issues, or
+- Open an issue at https://github.com/remuspoon/finddit/issues, or
 - Report the content directly through Reddit's report flow
 
 ---
 
 ## 6. Data and privacy
 
-Please review our [Privacy Policy](https://github.com/remuspoon/reddit-trauma-bot/blob/master/devvit/PRIVACY.md) for full details on how the app handles data. In summary:
+Please review our [Privacy Policy](https://github.com/remuspoon/finddit/blob/master/devvit/PRIVACY.md) for full details on how the app handles data. In summary:
 
 - We do not collect personal information about redditors
 - Post text is sent transiently to OpenAI for embedding generation only
@@ -84,4 +84,4 @@ These terms may be updated at any time. The "last updated" date at the top will 
 
 ## 11. Contact
 
-For questions or concerns, open an issue at https://github.com/remuspoon/reddit-trauma-bot/issues.
+For questions or concerns, open an issue at https://github.com/remuspoon/finddit/issues.

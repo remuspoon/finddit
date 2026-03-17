@@ -58,7 +58,7 @@ Post text is sent to the following third-party services:
 
 ## 6. Data deletion and user rights
 
-We respect redditors' right to deletion. You may request deletion of any data associated with your content by opening an issue at https://github.com/remuspoon/reddit-trauma-bot/issues.
+We respect redditors' right to deletion. You may request deletion of any data associated with your content by opening an issue at https://github.com/remuspoon/finddit/issues.
 
 - **Post/comment deletions:** If a post or comment is deleted from Reddit, or gains protected status, any associated data (including embeddings stored in Supabase derived from that content) will be removed from our systems as soon as possible.
 - **Account deletions:** If a Reddit account is deleted, all data attributable to that account in any external system will be removed within 30 days.
@@ -102,4 +102,4 @@ This policy may be updated at any time. The "last updated" date at the top will 
 
 ## 12. Contact and deletion requests
 
-For questions, concerns, or data deletion requests, open an issue at https://github.com/remuspoon/reddit-trauma-bot/issues.
+For questions, concerns, or data deletion requests, open an issue at https://github.com/remuspoon/finddit/issues.
