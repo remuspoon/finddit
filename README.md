@@ -12,7 +12,7 @@ Full repository: https://github.com/remuspoon/finddit
 2. The `PostCreate` trigger fires and fetches the post's title and body.
 3. The combined text is sent to OpenAI to generate a vector embedding.
 4. The embedding is used to run a nearest-neighbor search against the Supabase vector database of archived reddit posts.
-    - See 
+    - See https://github.com/remuspoon/finddit/tree/master/setup for the source and set up of the database
 5. Up to 5 matching Reddit permalinks are posted as a welcome comment on the new post, authored as the app account.
 
 ---

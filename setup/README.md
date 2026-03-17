@@ -2,6 +2,14 @@
 
 This folder builds a vector database of r/mentalhealth submissions and uploads them to Supabase (via `vecs`) for semantic search.
 
+## Data Source
+
+Reddit archive from 2005 - 2025 (The VDB only contains entries from the last 2 years)
+
+Filename: mentalhealth_submissions.jsonl
+
+From: https://academictorrents.com/details/3e3f64dee22dc304cdd2546254ca1f8e8ae542b4
+
 ## How it works
 
 1. **Load data** — Reads `data/mentalhealth_submissions.jsonl` (Reddit submission dump, one JSON object per line).
