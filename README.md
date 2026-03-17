@@ -2,7 +2,7 @@
 
 A Devvit app that listens for new posts and automatically comments with semantically similar posts from the vector database. The goal of this app is to help users find relevant mental health discussions while they wait for replies on their post.
 
-Full repository: https://github.com/remuspoon/finddit
+[Full repository here](https://github.com/remuspoon/finddit)
 
 ---
 
@@ -12,7 +12,7 @@ Full repository: https://github.com/remuspoon/finddit
 2. The `PostCreate` trigger fires and fetches the post's title and body.
 3. The combined text is sent to OpenAI to generate a vector embedding.
 4. The embedding is used to run a nearest-neighbor search against the Supabase vector database of archived reddit posts.
-    - To see the data source and set up of the database, go to https://github.com/remuspoon/finddit/tree/master/setup
+    - To see the data source and set up of the database, go to [here](https://github.com/remuspoon/finddit/tree/master/setup)
 5. Up to 5 matching Reddit permalinks are posted as a welcome comment on the new post, authored as the app account.
 
 ---
@@ -59,5 +59,5 @@ Fires whenever a new post is submitted to an installed subreddit.
 
 ## Terms
 
-- [Terms and Conditions](https://github.com/remuspoon/finddit/blob/master/devvit/TERMS.md)
-- [Privacy Policy](https://github.com/remuspoon/finddit/blob/master/devvit/PRIVACY.md)
+- [Terms and Conditions](https://github.com/remuspoon/finddit/blob/master/TERMS.md)
+- [Privacy Policy](https://github.com/remuspoon/finddit/blob/master/PRIVACY.md)
