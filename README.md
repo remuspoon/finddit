@@ -1,6 +1,8 @@
 # finddit
 
-A Devvit app that listens for new posts and automatically comments with semantically similar posts from the vector database. The goal of this app is to help users find relevant mental health discussions while they wait for replies on their post.
+Many redditors on mental health subreddits seek advice/support for their experiences but get no replies, even in large subreddits.
+
+Finddit is a Devvit app that listens for new posts and automatically comments with links to semantically similar posts on reddit from a vector database. The goal of this app is to help users find relevant mental health discussions while they wait for replies on their post.
 
 [Full repository here](https://github.com/remuspoon/finddit)
 
