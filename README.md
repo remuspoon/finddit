@@ -25,7 +25,7 @@ The following domains are requested for this app:
 
 - `api.openai.com` — Used to generate text embeddings via the `text-embedding-3-small` model. These embeddings power semantic similarity search against the post vector database.
 
-- `db.cjtfquaaqzpaustuniiy.supabase.co` — Used to query a Supabase vector database (`match_documents` RPC) for posts semantically similar to the new submission. Supabase is an approved cloud provider. This use case requires vector similarity search, which is not supported by the Devvit KV store.
+- `cjtfquaaqzpaustuniiy.supabase.co` — Used to query a Supabase vector database (`match_documents` RPC) for posts semantically similar to the new submission. Supabase is an approved cloud provider. This use case requires vector similarity search, which is not supported by the Devvit KV store.
 
 ---
 
@@ -53,7 +53,7 @@ Fires whenever a new post is submitted to an installed subreddit.
 
 | Setting | Type | Description |
 |---------|------|-------------|
-| `SUPABASE_URL` | string | Base URL of your Supabase project (e.g. `https://db.xxxx.supabase.co`) |
+| `SUPABASE_URL` | string | Base URL of your Supabase project (e.g. `https://xxxx.supabase.co`) |
 | `SUPABASE_API_KEY` | string (secret) | Supabase service role or anon key |
 | `OPENAI_API_KEY` | string (secret) | OpenAI API key used for generating embeddings |
 

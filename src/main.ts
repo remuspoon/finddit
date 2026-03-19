@@ -3,7 +3,7 @@ import { getOpenAIEmbedding, getSupabaseClient, querySupabaseVDB } from "./query
 
 Devvit.configure({
   redditAPI: true,
-  http: { domains: ["api.openai.com", "db.cjtfquaaqzpaustuniiy.supabase.co"] },
+  http: { domains: ["api.openai.com", "cjtfquaaqzpaustuniiy.supabase.co"] },
 });
 
 Devvit.addSettings([
