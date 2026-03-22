@@ -12,11 +12,11 @@
     "type-check": "tsc --build"
   },
   "dependencies": {
-    "@devvit/public-api": "0.12.13",
-    "@supabase/supabase-js": "^2.99.1"
+    "@devvit/public-api": "0.12.15",
+    "@supabase/supabase-js": "^2.99.1",
+    "devvit": "0.12.15"
   },
   "devDependencies": {
-    "devvit": "0.12.13",
     "dotenv-cli": "8.0.0",
     "typescript": "5.8.3"
   }
