@@ -1,10 +1,11 @@
 import { Devvit, RichTextBuilder, SettingScope } from "@devvit/public-api";
+import { DiscordLogger } from "./discord.js";
 import { getOpenAIEmbedding } from "./openai.js";
 import { getSupabaseClient, querySupabaseVDB } from "./supabase.js";
 
 Devvit.configure({
   redditAPI: true,
-  http: { domains: ["api.openai.com", "cjtfquaaqzpaustuniiy.supabase.co"] },
+  http: { domains: ["api.openai.com", "cjtfquaaqzpaustuniiy.supabase.co", "discord.com"] },
 });
 
 Devvit.addSettings([
@@ -29,6 +30,13 @@ Devvit.addSettings([
     scope: SettingScope.App,
     isSecret: true,
   },
+  {
+    type: "string",
+    name: "DISCORD_WEBHOOK_URL",
+    label: "Discord Webhook URL",
+    scope: SettingScope.App,
+    isSecret: true,
+  },
 ]);
 
 Devvit.addTrigger({
@@ -40,32 +48,34 @@ Devvit.addTrigger({
       return;
     }
 
+    const discordWebhookUrl = (await context.settings.get("DISCORD_WEBHOOK_URL"))?.toString()?.trim();
+    const log = discordWebhookUrl ? new DiscordLogger(discordWebhookUrl) : null;
+
     try {
+      await log?.info(`Processing new post: ${postId}`);
+
       const supabaseUrl = (await context.settings.get("SUPABASE_URL"))?.toString()?.trim();
       const supabaseApiKey = (await context.settings.get("SUPABASE_API_KEY"))?.toString()?.trim();
       const openaiApiKey = (await context.settings.get("OPENAI_API_KEY"))?.toString()?.trim();
       if (!supabaseApiKey || !openaiApiKey || !supabaseUrl) {
-        console.error("Missing SUPABASE_API_KEY or OPENAI_API_KEY in app settings");
+        await log?.error("Missing SUPABASE_API_KEY or OPENAI_API_KEY in app settings");
         return;
       }
 
       const post = await context.reddit.getPostById(postId);
       const queryText = [post.title, post.body].filter(Boolean).join("\n\n").trim();
       if (!queryText) {
-        console.log("Post has no title or body, skipping query");
+        await log?.info(`Post ${postId} has no title or body, skipping`);
         return;
       }
 
-      // ------------------------------------------------------------
-      // ------------------- Embedding and Query ---------------
-      // ------------------------------------------------------------
 
       // 1) Get embedding from OpenAI
       let embedding: number[];
       try {
         embedding = await getOpenAIEmbedding(queryText, openaiApiKey);
       } catch (err) {
-        console.error("Failed to get OpenAI embedding:", err);
+        await log?.error(`Failed to get OpenAI embedding: ${err}`);
         return;
       }
 
@@ -75,8 +85,9 @@ Devvit.addTrigger({
       let matches: { metadata?: { permalink?: string; post_id?: string } }[] = [];
       try {
         matches = await querySupabaseVDB(supabase, embedding);
+        await log?.info(`Supabase returned ${matches.length} matches`);
       } catch (err) {
-        console.error("Supabase match_documents error:", err);
+        await log?.error(`Supabase match_documents error: ${err}`);
         return;
       }
 
@@ -90,7 +101,8 @@ Devvit.addTrigger({
         : [];
 
       const validLinks: { title: string; url: string }[] = [];
-      for (const row of candidates.slice(0, 5)) {
+      for (const row of candidates) {
+        if (validLinks.length >= 5) break;
         try {
           const matchedPost = await context.reddit.getPostById(row.metadata!.post_id!);
           const author = matchedPost.authorName ?? "";
@@ -108,10 +120,10 @@ Devvit.addTrigger({
         }
       }
 
-      console.log(`${postId}: ${candidates.length} candidates, ${candidates.length - validLinks.length} filtered, ${validLinks.length} valid`);
+      await log?.info(`${postId}: ${candidates.length} candidates, ${candidates.length - validLinks.length} filtered, ${validLinks.length} valid`);
 
       if (validLinks.length === 0) {
-        console.log(`No valid links for ${postId}, skipping comment`);
+        await log?.warn(`No valid links for ${postId}, skipping comment`);
         return;
       }
 
@@ -151,9 +163,10 @@ Devvit.addTrigger({
         richtext,
         runAs: "APP",
       });
-      console.log(`posted on ${postId} with ${validLinks.length} links`);
+
+      await log?.info(`Comment posted on ${postId} with ${validLinks.length} links`);
     } catch (err) {
-      console.error("Failed to post welcome comment:", err);
+      await log?.error(`Failed to post welcome comment on ${postId}: ${err}`);
     }
   },
 });

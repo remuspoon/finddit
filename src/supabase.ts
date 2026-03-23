@@ -12,7 +12,7 @@ export async function querySupabaseVDB(
     matchCount?: number;
   }
 ) {
-  const { matchThreshold = 0, matchCount = 10 } = options ?? {};
+  const { matchThreshold = 0.7, matchCount = 20 } = options ?? {};
 
   const { data, error } = await supabase.rpc("match_documents", {
     query_embedding: embedding,

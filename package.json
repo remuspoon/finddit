@@ -14,7 +14,7 @@
   "dependencies": {
     "@devvit/public-api": "0.12.15",
     "@supabase/supabase-js": "^2.99.1",
-    "devvit": "0.12.15"
+    "devvit": "^0.12.16"
   },
   "devDependencies": {
     "dotenv-cli": "8.0.0",
