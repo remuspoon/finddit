@@ -129,10 +129,10 @@ Devvit.addTrigger({
 
       const richtext = new RichTextBuilder()
         .paragraph((p) => {
-          p.text({ text: "Hey there! Thanks for sharing :)" });
+          p.text({ text: "Hey there, thanks for sharing." });
         })
         .paragraph((p) => {
-          p.text({ text: "While you wait for people to comment, I think you might find these posts relevant:" });
+          p.text({ text: "While you wait for people to comment, have a look at these posts which might be relevant to you:" });
         })
         .list({ ordered: false }, (list) => {
           for (const { title, url } of validLinks) {
@@ -142,6 +142,9 @@ Devvit.addTrigger({
               });
             });
           }
+        })
+        .paragraph((p) => {
+          p.text({ text: "Remember, even though it might feel like it, you are not alone. Stay strong!" });
         })
         .paragraph((p) => {
           p.text({
