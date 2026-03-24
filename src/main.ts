@@ -1,7 +1,7 @@
 import { Devvit, RichTextBuilder, SettingScope } from "@devvit/public-api";
 import { DiscordLogger } from "./discord.js";
 import { getOpenAIEmbedding } from "./openai.js";
-import { getSupabaseClient, querySupabaseVDB } from "./supabase.js";
+import { getSupabaseClient, querySupabaseVDB, tagDeletedSupabasePosts } from "./supabase.js";
 
 Devvit.configure({
   redditAPI: true,
@@ -69,6 +69,9 @@ Devvit.addTrigger({
         return;
       }
 
+      // ------------------------------
+      // Embedding and Querying VDB
+      // ------------------------------
 
       // 1) Get embedding from OpenAI
       let embedding: number[];
@@ -82,7 +85,7 @@ Devvit.addTrigger({
       // 2) Build Supabase client and query match_documents rpc
       const supabase = getSupabaseClient(supabaseUrl, supabaseApiKey);
 
-      let matches: { metadata?: { permalink?: string; post_id?: string } }[] = [];
+      let matches: { similarity?: number; metadata?: { permalink?: string; post_id?: string } }[] = [];
       try {
         matches = await querySupabaseVDB(supabase, embedding);
         await log?.info(`Supabase returned ${matches.length} matches`);
@@ -90,6 +93,10 @@ Devvit.addTrigger({
         await log?.error(`Supabase match_documents error: ${err}`);
         return;
       }
+
+      // ------------------------------
+      // Filtering out deleted posts
+      // ------------------------------
 
       const candidates = Array.isArray(matches)
         ? matches.filter(
@@ -100,27 +107,52 @@ Devvit.addTrigger({
           )
         : [];
 
-      const validLinks: { title: string; url: string }[] = [];
+      const validLinks: { title: string; url: string; similarity: number }[] = [];
+      const deletedPostIds: string[] = [];
+
       for (const row of candidates) {
-        if (validLinks.length >= 5) break;
         try {
           const matchedPost = await context.reddit.getPostById(row.metadata!.post_id!);
           const author = matchedPost.authorName ?? "";
           const body = matchedPost.body ?? "";
           if (author === "[deleted]" || body === "[deleted]" || body === "[removed]") {
+            deletedPostIds.push(row.metadata!.post_id!);
             continue;
           }
-          const permalink = row.metadata!.permalink!;
-          const url = permalink.startsWith("http")
-            ? permalink
-            : `https://www.reddit.com${permalink.startsWith("/") ? "" : "/"}${permalink}`;
-          validLinks.push({ title: matchedPost.title || url, url });
+          if (validLinks.length < 5) {
+            const permalink = row.metadata!.permalink!;
+            const url = permalink.startsWith("http")
+              ? permalink
+              : `https://www.reddit.com${permalink.startsWith("/") ? "" : "/"}${permalink}`;
+            validLinks.push({ title: matchedPost.title || url, url, similarity: row.similarity ?? 0 });
+          }
         } catch {
+          deletedPostIds.push(row.metadata!.post_id!);
           continue;
         }
       }
 
-      await log?.info(`${postId}: ${candidates.length} candidates, ${candidates.length - validLinks.length} filtered, ${validLinks.length} valid`);
+      // ------------------------------
+      // Tag deleted posts in Supabase
+      // ------------------------------
+
+      if (deletedPostIds.length > 0) {
+        try {
+          await tagDeletedSupabasePosts(supabase, deletedPostIds);
+          await log?.info(`Tagged ${deletedPostIds.length} deleted posts`);
+        } catch (err) {
+          await log?.error(`Failed to tag deleted posts: ${err}`);
+          console.log(err);
+          console.log(deletedPostIds);
+        }
+      }
+
+      const scoresStr = validLinks.map((l) => `${l.title} (${l.similarity.toFixed(3)})`).join(", ");
+      await log?.info(`${postId}: ${candidates.length} candidates, ${deletedPostIds.length} deleted, ${validLinks.length} valid — [${scoresStr}]`);
+
+      // ------------------------------
+      // Posting comment
+      // ------------------------------
 
       if (validLinks.length === 0) {
         await log?.warn(`No valid links for ${postId}, skipping comment`);

@@ -24,5 +24,19 @@ export async function querySupabaseVDB(
     throw error;
   }
 
-  return data as { metadata?: { permalink?: string; post_id?: string } }[];
+  return data as { similarity?: number; metadata?: { permalink?: string; post_id?: string } }[];
+}
+
+
+export async function tagDeletedSupabasePosts(
+  supabase: ReturnType<typeof getSupabaseClient>,
+  postIds: string[],
+) {
+  const { error } = await supabase.rpc("tag_deleted_posts", {
+    post_ids: postIds,
+  });
+
+  if (error) {
+    throw error;
+  }
 }
