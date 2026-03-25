@@ -1,7 +1,8 @@
 import { Devvit, RichTextBuilder, SettingScope } from "@devvit/public-api";
 import { DiscordLogger } from "./discord.js";
 import { getOpenAIEmbedding } from "./openai.js";
-import { getSupabaseClient, querySupabaseVDB, tagDeletedSupabasePosts } from "./supabase.js";
+import { getSupabaseClient, querySupabaseVDB, tagDeletedSupabasePosts, logQueryEvent } from "./supabase.js";
+import { MatchLogEntry, ValidLink, VDBMatchResult } from "./types.js";
 
 Devvit.configure({
   redditAPI: true,
@@ -85,7 +86,7 @@ Devvit.addTrigger({
       // 2) Build Supabase client and query match_documents rpc
       const supabase = getSupabaseClient(supabaseUrl, supabaseApiKey);
 
-      let matches: { similarity?: number; metadata?: { permalink?: string; post_id?: string } }[] = [];
+      let matches: VDBMatchResult[] = [];
       try {
         matches = await querySupabaseVDB(supabase, embedding);
         await log?.info(`Supabase returned ${matches.length} matches`);
@@ -107,27 +108,35 @@ Devvit.addTrigger({
           )
         : [];
 
-      const validLinks: { title: string; url: string; similarity: number }[] = [];
+      const validLinks: ValidLink[] = [];
       const deletedPostIds: string[] = [];
+      const matchLog: MatchLogEntry[] = [];
 
       for (const row of candidates) {
+        const postId = row.metadata!.post_id!;
+        const permalink = row.metadata!.permalink!;
+        const similarity = row.similarity ?? 0;
         try {
-          const matchedPost = await context.reddit.getPostById(row.metadata!.post_id!);
+          const matchedPost = await context.reddit.getPostById(postId);
           const author = matchedPost.authorName ?? "";
           const body = matchedPost.body ?? "";
           if (author === "[deleted]" || body === "[deleted]" || body === "[removed]") {
-            deletedPostIds.push(row.metadata!.post_id!);
+            deletedPostIds.push(postId);
+            matchLog.push({ post_id: postId, permalink, similarity, status: "deleted" });
             continue;
           }
           if (validLinks.length < 5) {
-            const permalink = row.metadata!.permalink!;
             const url = permalink.startsWith("http")
               ? permalink
               : `https://www.reddit.com${permalink.startsWith("/") ? "" : "/"}${permalink}`;
-            validLinks.push({ title: matchedPost.title || url, url, similarity: row.similarity ?? 0 });
+            validLinks.push({ title: matchedPost.title || url, url, similarity });
+            matchLog.push({ post_id: postId, permalink, similarity, status: "valid" });
+          } else {
+            matchLog.push({ post_id: postId, permalink, similarity, status: "overflow" });
           }
         } catch {
-          deletedPostIds.push(row.metadata!.post_id!);
+          deletedPostIds.push(postId);
+          matchLog.push({ post_id: postId, permalink, similarity, status: "deleted" });
           continue;
         }
       }
@@ -142,13 +151,28 @@ Devvit.addTrigger({
           await log?.info(`Tagged ${deletedPostIds.length} deleted posts`);
         } catch (err) {
           await log?.error(`Failed to tag deleted posts: ${err}`);
-          console.log(err);
-          console.log(deletedPostIds);
         }
       }
 
-      const scoresStr = validLinks.map((l) => `${l.title} (${l.similarity.toFixed(3)})`).join(", ");
-      await log?.info(`${postId}: ${candidates.length} candidates, ${deletedPostIds.length} deleted, ${validLinks.length} valid — [${scoresStr}]`);
+      const scoresStr = validLinks.map((l) => l.similarity.toFixed(3)).join(", ");
+      await log?.info(`${postId}: ${candidates.length} candidates, ${deletedPostIds.length} deleted, ${validLinks.length} valid — scores: [${scoresStr}]`);
+
+      // ------------------------------
+      // Log query event to Supabase
+      // ------------------------------
+
+      try {
+        await logQueryEvent(supabase, {
+          triggerPostId: postId,
+          candidatesCount: candidates.length,
+          deletedCount: deletedPostIds.length,
+          validCount: validLinks.length,
+          commentPosted: validLinks.length > 0,
+          matches: matchLog,
+        });
+      } catch (err) {
+        await log?.error(`Failed to log query event: ${err}`);
+      }
 
       // ------------------------------
       // Posting comment
