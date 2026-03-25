@@ -1,4 +1,5 @@
-import { Devvit, RichTextBuilder, SettingScope } from "@devvit/public-api";
+import { Devvit, SettingScope } from "@devvit/public-api";
+import { buildCommentRichtext } from "./comment.js";
 import { DiscordLogger } from "./discord.js";
 import { getOpenAIEmbedding } from "./openai.js";
 import { getSupabaseClient, querySupabaseVDB, tagDeletedSupabasePosts, logQueryEvent } from "./supabase.js";
@@ -43,6 +44,12 @@ Devvit.addSettings([
     scope: SettingScope.App,
     isSecret: true,
   },
+  {
+    type: "string",
+    name: "TARGET_FLAIRS",
+    label: "Post flairs to trigger on (comma-separated). Leave blank to trigger on all posts.",
+    scope: SettingScope.Installation,
+  },
 ]);
 
 Devvit.addTrigger({
@@ -52,6 +59,19 @@ Devvit.addTrigger({
     if (!postId) {
       console.error("PostCreate event missing post id");
       return;
+    }
+
+    // ------------------------------
+    // Flair filter (before any API calls)
+    // ------------------------------
+
+    const targetFlairsSetting = (await context.settings.get("TARGET_FLAIRS"))?.toString()?.trim();
+    if (targetFlairsSetting) {
+      const targetFlairs = targetFlairsSetting.split(",").map((f) => f.trim().toLowerCase());
+      const postFlair = event.post?.linkFlair?.text?.toLowerCase() ?? "";
+      if (!postFlair || !targetFlairs.includes(postFlair)) {
+        return;
+      }
     }
 
     const discordWebhookUrl = (await context.settings.get("DISCORD_WEBHOOK_URL"))?.toString()?.trim();
@@ -69,7 +89,20 @@ Devvit.addTrigger({
       }
 
       const post = await context.reddit.getPostById(postId);
-      const queryText = [post.title, post.body].filter(Boolean).join("\n\n").trim();
+
+      // For crossposts the body is empty — fetch the parent post's body instead
+      let postBody = post.body ?? "";
+      if (!postBody && event.post?.crosspostParentId) {
+        try {
+          const parentId = event.post.crosspostParentId;
+          const parentPost = await context.reddit.getPostById(parentId);
+          postBody = parentPost.body ?? "";
+        } catch {
+          await log?.warn(`Failed to fetch parent post for ${postId}, skipping`);
+        }
+      }
+
+      const queryText = [post.title, postBody].filter(Boolean).join("\n\n").trim();
       if (!queryText) {
         await log?.info(`Post ${postId} has no title or body, skipping`);
         return;
@@ -101,7 +134,7 @@ Devvit.addTrigger({
       }
 
       // ------------------------------
-      // Filtering out deleted posts
+      // Processing matches
       // ------------------------------
 
       const candidates = Array.isArray(matches)
@@ -121,6 +154,8 @@ Devvit.addTrigger({
         const postId = row.metadata!.post_id!;
         const permalink = row.metadata!.permalink!;
         const similarity = row.similarity ?? 0;
+
+        // Check if the post is deleted or removed
         try {
           const matchedPost = await context.reddit.getPostById(postId);
           const author = matchedPost.authorName ?? "";
@@ -169,6 +204,7 @@ Devvit.addTrigger({
       try {
         await logQueryEvent(supabase, {
           triggerPostId: postId,
+          triggerPostFlair: event.post?.linkFlair?.text ?? null,
           candidatesCount: candidates.length,
           deletedCount: deletedPostIds.length,
           validCount: validLinks.length,
@@ -188,40 +224,7 @@ Devvit.addTrigger({
         return;
       }
 
-      const richtext = new RichTextBuilder()
-        .paragraph((p) => {
-          p.text({ text: "Hey there, thanks for sharing." });
-        })
-        .paragraph((p) => {
-          p.text({ text: "While you wait for people to comment, have a look at these posts which might be relevant to you:" });
-        })
-        .list({ ordered: false }, (list) => {
-          for (const { title, url } of validLinks) {
-            list.item((item) => {
-              item.paragraph((p) => {
-                p.link({ text: title, url });
-              });
-            });
-          }
-        })
-        .paragraph((p) => {
-          p.text({ text: "Remember, even though it might feel like it, you are not alone. Stay strong!" });
-        })
-        .paragraph((p) => {
-          p.text({
-            text: "This is an automated message. If you have any feedback or issues, post in ",
-            formatting: [[2, 0, 74]],
-          });
-          p.link({
-            text: "r/finddit_app",
-            url: "https://www.reddit.com/r/finddit_app/",
-            formatting: [[2, 0, 13]],
-          });
-          p.text({
-            text: ".",
-            formatting: [[2, 0, 1]],
-          });
-        });
+      const richtext = buildCommentRichtext(validLinks);
 
       await post.addComment({
         richtext,

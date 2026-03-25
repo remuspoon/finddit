@@ -34,6 +34,7 @@ export interface ValidLink {
 // Payload sent to the log_query_event RPC
 export interface QueryEventPayload {
   triggerPostId: string;
+  triggerPostFlair: string | null;
   candidatesCount: number;
   deletedCount: number;
   validCount: number;

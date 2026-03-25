@@ -35,6 +35,7 @@ export async function logQueryEvent(
 ) {
   const { error } = await supabase.rpc("log_query_event", {
     p_trigger_post_id: data.triggerPostId,
+    p_trigger_post_flair: data.triggerPostFlair,
     p_candidates_count: data.candidatesCount,
     p_deleted_count: data.deletedCount,
     p_valid_count: data.validCount,
