@@ -4,6 +4,11 @@ import { getOpenAIEmbedding } from "./openai.js";
 import { getSupabaseClient, querySupabaseVDB, tagDeletedSupabasePosts, logQueryEvent } from "./supabase.js";
 import { MatchLogEntry, ValidLink, VDBMatchResult } from "./types.js";
 
+function formatError(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return JSON.stringify(err);
+}
+
 Devvit.configure({
   redditAPI: true,
   http: { domains: ["api.openai.com", "cjtfquaaqzpaustuniiy.supabase.co", "discord.com"] },
@@ -79,7 +84,7 @@ Devvit.addTrigger({
       try {
         embedding = await getOpenAIEmbedding(queryText, openaiApiKey);
       } catch (err) {
-        await log?.error(`Failed to get OpenAI embedding: ${err}`);
+        await log?.error(`Failed to get OpenAI embedding: ${formatError(err)}`);
         return;
       }
 
@@ -91,7 +96,7 @@ Devvit.addTrigger({
         matches = await querySupabaseVDB(supabase, embedding);
         await log?.info(`Supabase returned ${matches.length} matches`);
       } catch (err) {
-        await log?.error(`Supabase match_documents error: ${err}`);
+        await log?.error(`Supabase match_documents error: ${formatError(err)}`);
         return;
       }
 
@@ -150,7 +155,7 @@ Devvit.addTrigger({
           await tagDeletedSupabasePosts(supabase, deletedPostIds);
           await log?.info(`Tagged ${deletedPostIds.length} deleted posts`);
         } catch (err) {
-          await log?.error(`Failed to tag deleted posts: ${err}`);
+          await log?.error(`Failed to tag deleted posts: ${formatError(err)}`);
         }
       }
 
@@ -171,7 +176,7 @@ Devvit.addTrigger({
           matches: matchLog,
         });
       } catch (err) {
-        await log?.error(`Failed to log query event: ${err}`);
+        await log?.error(`Failed to log query event: ${formatError(err)}`);
       }
 
       // ------------------------------
@@ -225,7 +230,7 @@ Devvit.addTrigger({
 
       await log?.info(`Comment posted on ${postId} with ${validLinks.length} links`);
     } catch (err) {
-      await log?.error(`Failed to post welcome comment on ${postId}: ${err}`);
+      await log?.error(`Failed to post welcome comment on ${postId}: ${formatError(err)}`);
     }
   },
 });
