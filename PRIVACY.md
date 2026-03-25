@@ -42,6 +42,11 @@ Post text is sent to the following third-party services:
 - **What is stored:** The database contains embeddings and Reddit permalinks of historical posts only. No usernames, user IDs, or personal information are stored.
 - **Data retention:** Governed by [Supabase's Privacy Policy](https://supabase.com/privacy)
 
+### Discord
+- **What is sent:** Operational log messages including post IDs, match counts, similarity scores, and error details. No post titles, body text, usernames, or other user-identifiable content is sent.
+- **Why:** To monitor app activity and debug issues via a webhook to a private Discord channel
+- **Data retention:** Governed by [Discord's Privacy Policy](https://discord.com/privacy)
+
 ---
 
 ## 5. Data we do not do

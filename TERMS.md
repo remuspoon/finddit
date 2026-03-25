@@ -14,7 +14,7 @@ These terms are solely between you and the developer of finddit. Reddit, Inc. ha
 
 ## 2. What the app does
 
-finddit automatically replies to new posts in installed subreddits with links to semantically similar posts from the subreddit's history. This is an informational convenience feature — it is not a substitute for human support, professional mental health advice, or crisis intervention.
+finddit automatically replies to new posts in installed subreddits with links to semantically similar posts from a pre-indexed database of Reddit posts. This is an informational convenience feature — it is not a substitute for human support, professional mental health advice, or crisis intervention.
 
 The app uses OpenAI (an approved LLM provider) to generate text embeddings and Supabase to query a vector database. Post text is processed solely to provide this functionality. Reddit data is not used to train or fine-tune any AI model.
 
@@ -49,7 +49,7 @@ If you experience issues with the app or believe it has violated Reddit's Devvit
 
 ## 6. Data and privacy
 
-Please review our [Privacy Policy](https://github.com/remuspoon/finddit/blob/master/devvit/PRIVACY.md) for full details on how the app handles data. In summary:
+Please review our [Privacy Policy](https://github.com/remuspoon/finddit/blob/master/PRIVACY.md) for full details on how the app handles data. In summary:
 
 - We do not collect personal information about redditors
 - Post text is sent transiently to OpenAI for embedding generation only
