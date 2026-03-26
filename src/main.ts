@@ -5,6 +5,12 @@ import { getOpenAIEmbedding } from "./openai.js";
 import { getSupabaseClient, querySupabaseVDB, tagDeletedSupabasePosts, logQueryEvent } from "./supabase.js";
 import { MatchLogEntry, ValidLink, VDBMatchResult } from "./types.js";
 
+const ALLOWLIST: string[] = [
+  "trauma",
+  "MentalHealthSupport",
+  "finddit_app_dev"
+];
+
 function formatError(err: unknown): string {
   if (err instanceof Error) return err.message;
   return JSON.stringify(err);
@@ -55,12 +61,30 @@ Devvit.addSettings([
 Devvit.addTrigger({
   event: "PostCreate",
   onEvent: async (event, context) => {
+    const discordWebhookUrl = (await context.settings.get("DISCORD_WEBHOOK_URL"))?.toString()?.trim();
+    const supabaseUrl = (await context.settings.get("SUPABASE_URL"))?.toString()?.trim();
+    const supabaseApiKey = (await context.settings.get("SUPABASE_API_KEY"))?.toString()?.trim();
+    const openaiApiKey = (await context.settings.get("OPENAI_API_KEY"))?.toString()?.trim();
+    const log = discordWebhookUrl ? new DiscordLogger(discordWebhookUrl) : null;
+
+    if (!supabaseApiKey || !openaiApiKey || !supabaseUrl) {
+      await log?.error("Missing SUPABASE_API_KEY or OPENAI_API_KEY in app settings");
+      return;
+    }
+
     const postId = event.post?.id;
     if (!postId) {
       console.error("PostCreate event missing post id");
       return;
     }
 
+    // Check if the subreddit is in the allowlist
+    const subreddit = event.subreddit?.name?.toLowerCase() ?? "";
+    if (!ALLOWLIST.includes(subreddit)) {
+      await log?.info(`Subreddit ${subreddit} not in allowlist, skipping`);
+      return;
+    }
+  
     // ------------------------------
     // Flair filter (before any API calls)
     // ------------------------------
@@ -74,20 +98,8 @@ Devvit.addTrigger({
       }
     }
 
-    const discordWebhookUrl = (await context.settings.get("DISCORD_WEBHOOK_URL"))?.toString()?.trim();
-    const log = discordWebhookUrl ? new DiscordLogger(discordWebhookUrl) : null;
-
     try {
       await log?.info(`Processing new post: ${postId}`);
-
-      const supabaseUrl = (await context.settings.get("SUPABASE_URL"))?.toString()?.trim();
-      const supabaseApiKey = (await context.settings.get("SUPABASE_API_KEY"))?.toString()?.trim();
-      const openaiApiKey = (await context.settings.get("OPENAI_API_KEY"))?.toString()?.trim();
-      if (!supabaseApiKey || !openaiApiKey || !supabaseUrl) {
-        await log?.error("Missing SUPABASE_API_KEY or OPENAI_API_KEY in app settings");
-        return;
-      }
-
       const post = await context.reddit.getPostById(postId);
 
       // For crossposts the body is empty — fetch the parent post's body instead
