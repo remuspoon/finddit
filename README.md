@@ -95,3 +95,4 @@ Fires whenever a new post is submitted to an installed subreddit.
 
 - [Terms and Conditions](https://github.com/remuspoon/finddit/blob/master/TERMS.md)
 - [Privacy Policy](https://github.com/remuspoon/finddit/blob/master/PRIVACY.md)
+- [Changelog](https://github.com/remuspoon/finddit/blob/master/CHANGELOG.md)
