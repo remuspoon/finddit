@@ -15,7 +15,7 @@ export async function querySupabaseVDB(
 ) {
   const { matchThreshold = 0.5, matchCount = 20 } = options ?? {};
 
-  const { data, error } = await supabase.rpc("match_documents", {
+  const { data, error } = await supabase.rpc("match_documents_mental_health", {
     query_embedding: embedding,
     match_threshold: matchThreshold,
     match_count: matchCount,
@@ -52,7 +52,7 @@ export async function tagDeletedSupabasePosts(
   supabase: ReturnType<typeof getSupabaseClient>,
   postIds: string[],
 ) {
-  const { error } = await supabase.rpc("tag_deleted_posts", {
+  const { error } = await supabase.rpc("tag_deleted_posts_mental_health", {
     post_ids: postIds,
   });
 
