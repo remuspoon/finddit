@@ -2,9 +2,11 @@
 
 Many redditors on mental health subreddits seek advice/support for their experiences but get no replies, even in large subreddits.
 
-Finddit is a Devvit app that listens for new posts and automatically comments with links to semantically similar posts on reddit from a vector database. The goal of this app is to help users find relevant mental health discussions while they wait for replies on their post.
+Finddit is a Reddit app that automatically comments on new posts with links to similar past discussions, helping users find relevant conversations while they wait for replies.
 
 [Full repository here](https://github.com/remuspoon/finddit)
+
+---
 
 > **Heads up before you install!**
 > Finddit uses an approved subreddit list to make sure it's only running in communities it's been set up for. If you install it in your subreddit and it doesn't seem to be doing anything — that's probably why. Reach out in [r/finddit_app](https://www.reddit.com/r/finddit_app/) and we can get your subreddit added. It only takes a minute on our end.
@@ -13,14 +15,7 @@ Finddit is a Devvit app that listens for new posts and automatically comments wi
 
 ## How it works
 
-1. A new post is created in the subreddit.
-2. The `PostCreate` trigger fires and fetches the post's title and body. For crossposts with an empty body, the parent post's body is fetched instead.
-3. The combined text is sent to OpenAI to generate a vector embedding.
-4. The embedding is used to run a nearest-neighbor search against the Supabase vector database of archived reddit posts.
-    - To see the data source and set up of the database, go to [here](https://github.com/remuspoon/finddit/tree/master/setup)
-5. Each matched post is fetched via the Reddit API to verify it hasn't been deleted or removed.
-6. If valid links remain, they are posted as a rich-text comment with the post titles as clickable links, authored as the app account. If all matches were filtered out, no comment is posted.
-7. Logging to a Discord channel via webhook (if configured).
+When someone posts in your subreddit, Finddit use semantic search to automatically reply with up to 5 links to similar posts from the past. The idea is that even if no one comments right away, the poster can still find relevant discussions and feel less alone.
 
 ---
 
@@ -42,6 +37,28 @@ If you leave the field blank, Finddit responds to all posts as normal.
 
 ---
 
+## Links
+
+- [Terms and Conditions](https://github.com/remuspoon/finddit/blob/master/TERMS.md)
+- [Privacy Policy](https://github.com/remuspoon/finddit/blob/master/PRIVACY.md)
+- [Changelog](https://github.com/remuspoon/finddit/blob/master/CHANGELOG.md)
+
+---
+
+# For Reviewers
+
+## How it works (technical)
+
+1. A new post is created in the subreddit.
+2. The `PostCreate` trigger fires and fetches the post's title and body. For crossposts with an empty body, the parent post's body is fetched instead.
+3. The combined text is sent to OpenAI to generate a vector embedding.
+4. The embedding is used to run a nearest-neighbor search against the Supabase vector database of archived Reddit posts.
+    - To see the data source and set up of the database, go to [here](https://github.com/remuspoon/finddit/tree/master/setup)
+5. Each matched post is fetched via the Reddit API to verify it hasn't been deleted or removed.
+6. If valid links remain, they are posted as a rich-text comment with the post titles as clickable links, authored as the app account. If all matches were filtered out, no comment is posted.
+7. All steps are logged to a Discord channel via webhook (if configured).
+
+---
 
 ## Fetch Domains
 
@@ -73,6 +90,8 @@ Fires whenever a new post is submitted to an installed subreddit.
 - Logs every step to Discord via webhook.
 
 **Skips silently if:**
+- The subreddit is not on the approved allowlist.
+- The post flair doesn't match the mod-configured flair filter.
 - The post has no title or body.
 - Any required app setting is missing.
 - The OpenAI or Supabase request fails.
@@ -82,17 +101,10 @@ Fires whenever a new post is submitted to an installed subreddit.
 
 ## App Settings
 
-| Setting | Type | Description |
-|---------|------|-------------|
-| `SUPABASE_URL` | string | Base URL of your Supabase project (e.g. `https://xxxx.supabase.co`) |
-| `SUPABASE_API_KEY` | string (secret) | Supabase service role or anon key |
-| `OPENAI_API_KEY` | string (secret) | OpenAI API key used for generating embeddings |
-| `DISCORD_WEBHOOK_URL` | string (secret) | Discord webhook URL for logging (optional) |
-
----
-
-## Terms
-
-- [Terms and Conditions](https://github.com/remuspoon/finddit/blob/master/TERMS.md)
-- [Privacy Policy](https://github.com/remuspoon/finddit/blob/master/PRIVACY.md)
-- [Changelog](https://github.com/remuspoon/finddit/blob/master/CHANGELOG.md)
+| Setting | Scope | Type | Description |
+|---------|-------|------|-------------|
+| `SUPABASE_URL` | App | string | Base URL of the Supabase project |
+| `SUPABASE_API_KEY` | App | string (secret) | Supabase service role key |
+| `OPENAI_API_KEY` | App | string (secret) | OpenAI API key for generating embeddings |
+| `DISCORD_WEBHOOK_URL` | App | string (secret) | Discord webhook URL for logging (optional) |
+| `TARGET_FLAIRS` | Installation | string | Comma-separated list of post flairs to trigger on. Leave blank for all posts. |
