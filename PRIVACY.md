@@ -15,6 +15,8 @@ finddit is a Reddit app built with Devvit. This policy explains what data is pro
 When a new post is created in an installed subreddit, the app processes:
 
 - The **title** and **body text** of the post (publicly visible on Reddit)
+- The post's **flair text**, if present (publicly visible metadata)
+- For **crossposts**: the **body text of the parent post** (publicly visible on Reddit), used in place of the crosspost's empty body for embedding purposes
 
 This data is used solely to find semantically similar posts and generate a helpful comment. We do not process usernames, user IDs, account information, or any other personal data.
 
@@ -37,9 +39,18 @@ Post text is sent to the following third-party services:
 - **Data retention:** Governed by [OpenAI's Privacy Policy](https://openai.com/policies/privacy-policy)
 
 ### Supabase
-- **What is sent:** The vector embedding (not the original post text)
-- **Why:** To query a vector database of pre-indexed posts for semantic similarity
-- **What is stored:** The database contains embeddings and Reddit permalinks of historical posts only. No usernames, user IDs, or personal information are stored.
+Supabase is used for two distinct operations:
+
+**1. Similarity search (`match_documents` RPC)**
+- **What is sent:** The vector embedding only (a numerical array — not the original post text)
+- **Why:** To perform a nearest-neighbor search against a pre-indexed database of Reddit posts
+
+**2. Query event logging (`log_query_event` RPC)**
+- **What is sent:** A structured operational record containing: the triggering post's Reddit post ID, the post's flair text (if present), aggregate match counts (candidates, deleted, valid), whether a comment was posted, and per-match metadata (post ID, permalink, similarity score, deletion status). No post titles, body text, usernames, or account information are included.
+- **Why:** To maintain database quality over time by tracking which indexed posts are still live, enabling stale and deleted entries to be purged from the vector index
+
+**What is stored in the database:** Embeddings and Reddit permalinks of historical posts only. No usernames, user IDs, or personal information are stored in the index.
+
 - **Data retention:** Governed by [Supabase's Privacy Policy](https://supabase.com/privacy)
 
 ### Discord
