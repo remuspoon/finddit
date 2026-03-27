@@ -216,6 +216,7 @@ Devvit.addTrigger({
       try {
         await logQueryEvent(supabase, {
           triggerPostId: postId,
+          subreddit: subreddit,
           triggerPostFlair: event.post?.linkFlair?.text ?? null,
           candidatesCount: candidates.length,
           deletedCount: deletedPostIds.length,

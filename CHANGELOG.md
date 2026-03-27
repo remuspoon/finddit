@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.1.2] - 2026-03-27
+- Store subreddit to query event log
+
 ## [1.1.1] - 2026-03-26
 - Switched to 512 embedding length.
 - Used the openai sdk instead of fetch request.
