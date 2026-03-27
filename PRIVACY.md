@@ -46,7 +46,7 @@ Supabase is used for two distinct operations:
 - **Why:** To perform a nearest-neighbor search against a pre-indexed database of Reddit posts
 
 **2. Query event logging (`log_query_event` RPC)**
-- **What is sent:** A structured operational record containing: the triggering post's Reddit post ID, the post's flair text (if present), aggregate match counts (candidates, deleted, valid), whether a comment was posted, and per-match metadata (post ID, permalink, similarity score, deletion status). No post titles, body text, usernames, or account information are included.
+- **What is sent:** A structured operational record containing: the triggering post's Reddit post ID, the subreddit name, the post's flair text (if present), aggregate match counts (candidates, deleted, valid), whether a comment was posted, and per-match metadata (post ID, permalink, similarity score, deletion status). No post titles, body text, usernames, or account information are included.
 - **Why:** To maintain database quality over time by tracking which indexed posts are still live, enabling stale and deleted entries to be purged from the vector index
 
 **What is stored in the database:** Embeddings and Reddit permalinks of historical posts only. No usernames, user IDs, or personal information are stored in the index.
