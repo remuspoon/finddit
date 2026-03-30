@@ -1,3 +1,9 @@
+// Config for an approved subreddit, fetched from the allowed_subreddits table
+export interface SubredditConfig {
+  subreddit: string;
+  vdb_name: string;
+}
+
 // A raw match returned from the Supabase vector DB
 export interface VDBMatchResult {
   similarity?: number;

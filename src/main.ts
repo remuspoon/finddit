@@ -2,14 +2,8 @@ import { Devvit, SettingScope } from "@devvit/public-api";
 import { buildCommentRichtext } from "./comment.js";
 import { DiscordLogger } from "./discord.js";
 import { getOpenAIEmbedding } from "./openai.js";
-import { getSupabaseClient, querySupabaseVDB, tagDeletedSupabasePosts, logQueryEvent } from "./supabase.js";
+import { getSupabaseClient, getSubredditConfig, querySupabaseVDB, tagDeletedSupabasePosts, logQueryEvent } from "./supabase.js";
 import { MatchLogEntry, ValidLink, VDBMatchResult } from "./types.js";
-
-const ALLOWLIST: string[] = [
-  "trauma",
-  "MentalHealthSupport",
-  "finddit_app_dev"
-];
 
 function formatError(err: unknown): string {
   if (err instanceof Error) return err.message;
@@ -78,9 +72,14 @@ Devvit.addTrigger({
       return;
     }
 
-    // Check if the subreddit is in the allowlist
-    const subreddit = event.subreddit?.name?.toLowerCase() ?? "";
-    if (!ALLOWLIST.includes(subreddit)) {
+    // ------------------------------
+    // Subreddit allowlist + VDB config
+    // ------------------------------
+
+    const subreddit = event.subreddit?.name ?? "";
+    const supabase = getSupabaseClient(supabaseUrl, supabaseApiKey);
+    const subredditConfig = await getSubredditConfig(supabase, subreddit);
+    if (!subredditConfig) {
       await log?.info(`Subreddit ${subreddit} not in allowlist, skipping`);
       return;
     }
@@ -132,9 +131,6 @@ Devvit.addTrigger({
         await log?.error(`Failed to get OpenAI embedding: ${formatError(err)}`);
         return;
       }
-
-      // 2) Build Supabase client and query match_documents rpc
-      const supabase = getSupabaseClient(supabaseUrl, supabaseApiKey);
 
       let matches: VDBMatchResult[] = [];
       try {

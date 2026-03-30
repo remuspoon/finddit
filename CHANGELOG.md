@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.3] - 2026-03-30
+- Replaced hardcoded subreddit allowlist with a Supabase `allowed_subreddits` table — adding a new subreddit no longer requires a redeploy
+- Each subreddit now maps to a vector database name, allowing the app to support multiple subreddits backed by different databases
+- RPC calls for vector search and deleted post tagging are now dynamic based on the subreddit's configured database
+
 ## [1.1.2] - 2026-03-27
 - Store subreddit to query event log
 

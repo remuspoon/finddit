@@ -1,8 +1,25 @@
 import { createClient } from "@supabase/supabase-js";
-import { VDBMatchResult, QueryEventPayload } from "./types.js";
+import { VDBMatchResult, QueryEventPayload, SubredditConfig } from "./types.js";
 
 export function getSupabaseClient(supabaseUrl: string, supabaseKey: string) {
   return createClient(supabaseUrl, supabaseKey);
+}
+
+export async function getSubredditConfig(
+  supabase: ReturnType<typeof getSupabaseClient>,
+  subreddit: string
+): Promise<SubredditConfig | null> {
+  const { data, error } = await supabase
+    .from("allowed_subreddits")
+    .select("subreddit, vdb_name")
+    .eq("subreddit", subreddit)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data as SubredditConfig;
 }
 
 export async function querySupabaseVDB(
@@ -27,7 +44,6 @@ export async function querySupabaseVDB(
 
   return data as VDBMatchResult[];
 }
-
 
 export async function logQueryEvent(
   supabase: ReturnType<typeof getSupabaseClient>,
