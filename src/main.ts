@@ -10,6 +10,7 @@ function formatError(err: unknown): string {
   return JSON.stringify(err);
 }
 
+
 Devvit.configure({
   redditAPI: true,
   http: { domains: ["api.openai.com", "cjtfquaaqzpaustuniiy.supabase.co", "discord.com"] },
@@ -68,7 +69,6 @@ Devvit.addTrigger({
 
     const postId = event.post?.id;
     if (!postId) {
-      console.error("PostCreate event missing post id");
       return;
     }
 
@@ -174,10 +174,8 @@ Devvit.addTrigger({
             continue;
           }
           if (validLinks.length < 5) {
-            const url = permalink.startsWith("http")
-              ? permalink
-              : `https://www.reddit.com${permalink.startsWith("/") ? "" : "/"}${permalink}`;
-            validLinks.push({ title: matchedPost.title || url, url, similarity });
+            const clickUrl = `${subredditConfig.analytics_url}/api/click?postId=${encodeURIComponent(postId)}&position=${validLinks.length}&permalink=${encodeURIComponent(permalink)}&source=${encodeURIComponent(event.post!.id!)}`;
+            validLinks.push({ title: matchedPost.title || postId, url: clickUrl, similarity });
             matchLog.push({ post_id: postId, permalink, similarity, status: "valid" });
           } else {
             matchLog.push({ post_id: postId, permalink, similarity, status: "overflow" });

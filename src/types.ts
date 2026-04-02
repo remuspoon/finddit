@@ -2,6 +2,7 @@
 export interface SubredditConfig {
   subreddit: string;
   vdb_name: string;
+  analytics_url: string;
 }
 
 // A raw match returned from the Supabase vector DB
