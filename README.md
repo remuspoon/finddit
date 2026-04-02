@@ -55,7 +55,7 @@ If you leave the field blank, Finddit responds to all posts as normal.
 4. The embedding is used to run a nearest-neighbor search against the Supabase vector database of archived Reddit posts.
     - To see the data source and set up of the database, go to [here](https://github.com/remuspoon/finddit/tree/master/setup)
 5. Each matched post is fetched via the Reddit API to verify it hasn't been deleted or removed.
-6. If valid links remain, they are posted as a rich-text comment with the post titles as clickable links, authored as the app account. If all matches were filtered out, no comment is posted.
+6. If valid links remain, they are posted as a rich-text comment. Each link routes through a click-tracking redirect (logging post ID, position, etc.) before forwarding the redditor to the Reddit post. If all matches were filtered out, no comment is posted. (See https://github.com/remuspoon/finddit/analytics)
 7. All steps are logged to a Discord channel via webhook (if configured).
 
 ---

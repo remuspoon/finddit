@@ -36,6 +36,8 @@ The app posts comments automatically using the app's Reddit account (`runAs: "AP
 
 The app does not generate, modify, or reproduce user-authored content beyond surfacing links to existing public Reddit posts.
 
+Result links in app comments are routed through a click-tracking redirect before landing on Reddit. This redirect logs limited interaction data (which link was clicked, its position, and the User-Agent of the request) for the purpose of improving result quality. No usernames or account information are collected. See the Privacy Policy for full details.
+
 ---
 
 ## 5. Reporting

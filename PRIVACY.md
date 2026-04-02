@@ -12,13 +12,23 @@ finddit is a Reddit app built with Devvit. This policy explains what data is pro
 
 ## 2. Data we process
 
-When a new post is created in an installed subreddit, the app processes:
+**On post creation**, the app processes:
 
 - The **title** and **body text** of the post (publicly visible on Reddit)
 - The post's **flair text**, if present (publicly visible metadata)
 - For **crossposts**: the **body text of the parent post** (publicly visible on Reddit), used in place of the crosspost's empty body for embedding purposes
 
 This data is used solely to find semantically similar posts and generate a helpful comment. We do not process usernames, user IDs, account information, or any other personal data.
+
+**When a redditor clicks a result link** in one of the app's comments, the following is collected:
+
+- The Reddit post ID of the link clicked
+- The position of the link in the result list (0–4)
+- The Reddit post ID of the triggering post that caused the comment
+- The Reddit permalink of the clicked post
+- The HTTP **User-Agent** header of the request (browser and OS information)
+
+This data is used solely to measure which suggestions are being used and to improve result quality over time.
 
 ---
 
@@ -49,6 +59,11 @@ Supabase is used for two distinct operations:
 - **What is sent:** A structured operational record containing: the triggering post's Reddit post ID, the subreddit name, the post's flair text (if present), aggregate match counts (candidates, deleted, valid), whether a comment was posted, and per-match metadata (post ID, permalink, similarity score, deletion status). No post titles, body text, usernames, or account information are included.
 - **Why:** To maintain database quality over time by tracking which indexed posts are still live, enabling stale and deleted entries to be purged from the vector index
 
+**3. Click analytics (`clicks` table)**
+- **What is sent:** When a redditor clicks a result link, the click is routed through a lightweight analytics redirect before landing on Reddit. The redirect logs: clicked post ID, link position, source post ID, Reddit permalink, and the User-Agent header of the request.
+- **Why:** To measure engagement with suggestions and identify which result positions are most useful, informing future improvements to the ranking and matching logic.
+- **What is stored:** Click records in the `clicks` table. No usernames, Reddit user IDs, or account information are stored.
+
 **What is stored in the database:** Embeddings and Reddit permalinks of historical posts only. No usernames, user IDs, or personal information are stored in the index.
 
 - **Data retention:** Governed by [Supabase's Privacy Policy](https://supabase.com/privacy)
@@ -67,8 +82,8 @@ Supabase is used for two distinct operations:
 - We do not surveil redditors or track Reddit content for intelligence purposes
 - We do not sell, license, share, or commercialize redditor data in any form
 - We do not use Reddit data to train or fine-tune any AI, ML, LLM, or NLP model
-- We do not use cookies or tracking mechanisms
-- We do not direct redditors to external sites that collect personal data
+- We do not use cookies
+- Result links in app comments route through a click-tracking redirect that collects limited interaction data (post IDs, link position, User-Agent) before forwarding to Reddit. This data is used solely for improving result quality and is not shared or sold.
 
 ---
 
@@ -77,7 +92,7 @@ Supabase is used for two distinct operations:
 We respect redditors' right to deletion. You may request deletion of any data associated with your content by opening an issue at https://github.com/remuspoon/finddit/issues.
 
 - **Post/comment deletions:** If a post or comment is deleted from Reddit, or gains protected status, any associated data (including embeddings stored in Supabase derived from that content) will be removed from our systems as soon as possible.
-- **Account deletions:** If a Reddit account is deleted, all data attributable to that account in any external system will be removed within 30 days.
+- **Click records:** Click interaction records (post IDs, link position, User-Agent) are stored in Supabase. These can be deleted on request. They contain no usernames or account identifiers, but may be traceable to a post author via post ID.
 - **On request:** Any user may request deletion of their data at any time by contacting us at the link above.
 
 ---

@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.4] - 2026-04-02
+### Docs
+- Privacy policy and terms updated to disclose click analytics (redirect links, `clicks` table, User-Agent collection)
+- Privacy policy §2 expanded to list click interaction data collected on link click
+- Privacy policy §4 (Supabase) updated with a third operation entry covering the `clicks` table
+- Privacy policy §5 corrected — removed inaccurate "no tracking mechanisms" claim; replaced with accurate description of the click redirect
+- Privacy policy §6 updated to cover deletion of click records on account deletion or request
+- Terms §4 updated to note that result links route through a click-tracking redirect before landing on Reddit
+- README updated to reflect click redirect behaviour in "How it works" and Fetch Domains sections
+
 ## [1.1.3] - 2026-03-30
 - Replaced hardcoded subreddit allowlist with a Supabase `allowed_subreddits` table — adding a new subreddit no longer requires a redeploy
 - Each subreddit now maps to a vector database name, allowing the app to support multiple subreddits backed by different databases
