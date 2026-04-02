@@ -30,7 +30,6 @@ router.get('/api/click', async (req: Request, res: Response) => {
     waitUntil(
       (async () => {
         try {
-          console.log('Logging click to Supabase');
           await createClient(supabaseUrl, supabaseKey).from('clicks').insert({
             clicked_post_id: postId,
             position: position ? parseInt(position, 10) : null,
@@ -39,7 +38,6 @@ router.get('/api/click', async (req: Request, res: Response) => {
             user_agent: req.headers['user-agent'] ?? null,
             cta_id: cta ? parseInt(cta, 10) : null,
           });
-          console.log('Click logged successfully');
           if (webhookUrl) {
             await discordLog(webhookUrl, 'INFO', `Click event from: ${postId}`);
           }
