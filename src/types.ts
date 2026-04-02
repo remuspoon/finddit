@@ -1,8 +1,16 @@
-// Config for an approved subreddit, fetched from the allowed_subreddits table
+// A CTA version row, joined from the cta table via cta_id
+export interface CommentConfig {
+  intro?: string;
+  setup?: string;
+  outro?: string;
+}
+
+// Config for an approved subreddit, fetched from the configs table
 export interface SubredditConfig {
   subreddit: string;
   vdb_name: string;
   analytics_url: string;
+  cta: CommentConfig | null;
 }
 
 // A raw match returned from the Supabase vector DB

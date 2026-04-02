@@ -1,13 +1,19 @@
 import { RichTextBuilder } from "@devvit/public-api";
-import { ValidLink } from "./types.js";
+import { CommentConfig, ValidLink } from "./types.js";
 
-export function buildCommentRichtext(validLinks: ValidLink[]): RichTextBuilder {
+const DEFAULTS = {
+  intro: "Hey there, thanks for sharing.",
+  setup: "While you wait for people to comment, have a look at these posts which might be relevant to you:",
+  outro: "Remember, even though it might feel like it, you are not alone. Stay strong!",
+};
+
+export function buildCommentRichtext(validLinks: ValidLink[], config?: CommentConfig | null): RichTextBuilder {
   return new RichTextBuilder()
     .paragraph((p) => {
-      p.text({ text: "Hey there, thanks for sharing." });
+      p.text({ text: config?.intro ?? DEFAULTS.intro });
     })
     .paragraph((p) => {
-      p.text({ text: "While you wait for people to comment, have a look at these posts which might be relevant to you:" });
+      p.text({ text: config?.setup ?? DEFAULTS.setup });
     })
     .list({ ordered: false }, (list) => {
       for (const { title, url } of validLinks) {
@@ -19,7 +25,7 @@ export function buildCommentRichtext(validLinks: ValidLink[]): RichTextBuilder {
       }
     })
     .paragraph((p) => {
-      p.text({ text: "Remember, even though it might feel like it, you are not alone. Stay strong!" });
+      p.text({ text: config?.outro ?? DEFAULTS.outro });
     })
     .paragraph((p) => {
       p.text({

@@ -10,8 +10,8 @@ export async function getSubredditConfig(
   subreddit: string
 ): Promise<SubredditConfig | null> {
   const { data, error } = await supabase
-    .from("allowed_subreddits")
-    .select("subreddit, vdb_name, analytics_url")
+    .from("configs")
+    .select("subreddit, vdb_name, analytics_url, cta:cta_id(intro, setup, outro)")
     .eq("subreddit", subreddit)
     .single();
 

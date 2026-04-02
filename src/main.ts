@@ -231,7 +231,7 @@ Devvit.addTrigger({
         return;
       }
 
-      const richtext = buildCommentRichtext(validLinks);
+      const richtext = buildCommentRichtext(validLinks, subredditConfig.cta);
 
       await post.addComment({
         richtext,
