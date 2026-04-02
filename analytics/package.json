@@ -1,0 +1,29 @@
+{
+  "name": "finddit-analytics",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "tsx watch index.ts",
+    "build": "tsc",
+    "start": "node index.js",
+    "vercel-build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "remuspoon",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.99.1",
+    "@vercel/functions": "^3.4.3",
+    "dotenv": "^17.3.1",
+    "express": "^4.21.0",
+    "openai": "^6.25.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
