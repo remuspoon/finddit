@@ -52,6 +52,7 @@ export interface QueryEventPayload {
   triggerPostId: string;
   subreddit: string;
   triggerPostFlair: string | null;
+  ctaId: number | null;
   candidatesCount: number;
   deletedCount: number;
   validCount: number;

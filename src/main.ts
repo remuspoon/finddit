@@ -214,6 +214,7 @@ Devvit.addTrigger({
           triggerPostId: postId,
           subreddit: subreddit,
           triggerPostFlair: event.post?.linkFlair?.text ?? null,
+          ctaId: subredditConfig.cta_id,
           candidatesCount: candidates.length,
           deletedCount: deletedPostIds.length,
           validCount: validLinks.length,
