@@ -243,7 +243,7 @@ Devvit.addTrigger({
 
       await log?.info(`Comment posted on ${postId} with ${validLinks.length} links`);
     } catch (err) {
-      await log?.error(`Failed to post welcome comment on ${postId}: ${formatError(err)}`);
+      await log?.error(`Failed to post comment on ${postId}: ${formatError(err)}`);
     }
   },
 });

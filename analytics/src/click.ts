@@ -49,7 +49,6 @@ router.get('/api/click', async (req: Request, res: Response) => {
               `Failed to log click for ${postId}: ${err instanceof Error ? err.message : JSON.stringify(err)}`
             );
           }
-          console.log(`Failed to log click for ${postId}: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
         }
       })()
     );

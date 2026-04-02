@@ -30,7 +30,6 @@ export class DiscordLogger {
         body: JSON.stringify({ content }),
       });
     } catch {
-      console.error(`Discord webhook failed: ${message}`);
     }
   }
 }

@@ -9,6 +9,5 @@ export async function discordLog(webhookUrl: string, level: LogLevel, message: s
       body: JSON.stringify({ content: `${emoji} **[${level}]** ${message}` }),
     });
   } catch {
-    console.error(`Discord webhook failed: ${message}`);
   }
 }

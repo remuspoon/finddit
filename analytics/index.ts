@@ -10,7 +10,6 @@ app.use(clickRouter);
 
 if (process.env.VERCEL !== '1') {
   app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
   });
 }
 
