@@ -2,7 +2,7 @@
 
 **App:** finddit
 
-**Last updated:** March 16, 2026
+**Last updated:** April 03, 2026
 
 ## 1. Overview
 

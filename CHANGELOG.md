@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.4] - 2026-04-02
+## [1.2.0] - 2026-04-02
 ### Update dependencies
 - Devvit 0.12.15 -> 0.12.17
 
