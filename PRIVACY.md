@@ -51,7 +51,7 @@ Post text is sent to the following third-party services:
 ### Supabase
 Supabase is used for two distinct operations:
 
-**1. Similarity search (`match_documents` RPC)**
+**1. Similarity search (`match_documents_mental_health` RPC)**
 - **What is sent:** The vector embedding only (a numerical array — not the original post text)
 - **Why:** To perform a nearest-neighbor search against a pre-indexed database of Reddit posts
 
@@ -60,7 +60,7 @@ Supabase is used for two distinct operations:
 - **Why:** To maintain database quality over time by tracking which indexed posts are still live, enabling stale and deleted entries to be purged from the vector index
 
 **3. Click analytics (`clicks` table)**
-- **What is sent:** When a redditor clicks a result link, the click is routed through a lightweight analytics redirect before landing on Reddit. The redirect logs: clicked post ID, link position, source post ID, Reddit permalink, and the User-Agent header of the request.
+- **What is sent:** When a redditor clicks a result link, the click is routed through a lightweight analytics redirect before landing on Reddit. The redirect logs: clicked post ID, link position (0–4), source post ID, Reddit permalink, an internal CTA configuration ID (an integer referencing which comment template was used — not a user identifier), and the User-Agent header of the request.
 - **Why:** To measure engagement with suggestions and identify which result positions are most useful, informing future improvements to the ranking and matching logic.
 - **What is stored:** Click records in the `clicks` table. No usernames, Reddit user IDs, or account information are stored.
 
