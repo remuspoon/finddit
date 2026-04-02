@@ -17,8 +17,6 @@ router.get('/api/click', async (req: Request, res: Response) => {
     ? `https://reddit.com${permalink}`
     : `https://reddit.com/comments/${postId.replace(/^t3_/, '')}`;
 
-  // reddit:// triggers the native app from within WKWebView (iOS in-app browser).
-  // https:// is used as the meta-refresh fallback for desktop/Android.
   const redditUrl = permalink
     ? `reddit://reddit.com${permalink}`
     : `reddit://reddit.com/comments/${postId.replace(/^t3_/, '')}`;
@@ -55,16 +53,22 @@ router.get('/api/click', async (req: Request, res: Response) => {
     );
   }
 
-  // Serve a minimal HTML page that immediately navigates to the reddit:// scheme.
-  // On iOS this switches to the native Reddit app. The meta-refresh is a fallback
-  // for desktop/Android where the custom scheme has no handler.
-  res.setHeader('Content-Type', 'text/html');
-  res.send(
-    `<!DOCTYPE html><html><head><meta charset="utf-8">` +
-    `<script>window.location=${JSON.stringify(redditUrl)};</script>` +
-    `<meta http-equiv="refresh" content="0;url=${httpUrl.replace(/"/g, '&quot;')}">` +
-    `</head><body></body></html>`
-  );
+  const ua = req.headers['user-agent'] ?? '';
+  const isMobile = /iphone|ipad|ipod|android/i.test(ua);
+
+  if (isMobile) {
+    // On mobile, serve an HTML page that navigates to reddit:// to open the native app.
+    // The meta-refresh is a fallback in case the scheme fails (e.g. app not installed).
+    res.setHeader('Content-Type', 'text/html');
+    res.send(
+      `<!DOCTYPE html><html><head><meta charset="utf-8">` +
+      `<script>window.location=${JSON.stringify(redditUrl)};</script>` +
+      `<meta http-equiv="refresh" content="0;url=${httpUrl.replace(/"/g, '&quot;')}">` +
+      `</head><body></body></html>`
+    );
+  } else {
+    res.redirect(httpUrl);
+  }
 });
 
 export default router;
