@@ -77,6 +77,7 @@ Devvit.addTrigger({
     // ------------------------------
 
     const subreddit = event.subreddit?.name ?? "";
+    await log?.info(`Processing post from subreddit: ${subreddit}`);
     const supabase = getSupabaseClient(supabaseUrl, supabaseApiKey);
     const subredditConfig = await getSubredditConfig(supabase, subreddit);
     if (!subredditConfig) {
@@ -174,7 +175,8 @@ Devvit.addTrigger({
             continue;
           }
           if (validLinks.length < 5) {
-            const clickUrl = `${subredditConfig.analytics_url}/api/click?postId=${encodeURIComponent(postId)}&position=${validLinks.length}&permalink=${encodeURIComponent(permalink)}&source=${encodeURIComponent(event.post!.id!)}`;
+            const ctaParam = subredditConfig.cta_id != null ? `&cta=${subredditConfig.cta_id}` : "";
+            const clickUrl = `${subredditConfig.analytics_url}/api/click?postId=${encodeURIComponent(postId)}&position=${validLinks.length}&permalink=${encodeURIComponent(permalink)}&source=${encodeURIComponent(event.post!.id!)}${ctaParam}`;
             validLinks.push({ title: matchedPost.title || postId, url: clickUrl, similarity });
             matchLog.push({ post_id: postId, permalink, similarity, status: "valid" });
           } else {

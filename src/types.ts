@@ -10,6 +10,7 @@ export interface SubredditConfig {
   subreddit: string;
   vdb_name: string;
   analytics_url: string;
+  cta_id: number | null;
   cta: CommentConfig | null;
 }
 

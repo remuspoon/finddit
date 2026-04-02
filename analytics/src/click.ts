@@ -6,7 +6,7 @@ import { discordLog } from './discord.js';
 const router = Router();
 
 router.get('/api/click', async (req: Request, res: Response) => {
-  const { postId, position, permalink, source } = req.query as Record<string, string | undefined>;
+  const { postId, position, permalink, source, cta } = req.query as Record<string, string | undefined>;
 
   if (!postId) {
     res.status(400).send('Missing postId');
@@ -37,8 +37,12 @@ router.get('/api/click', async (req: Request, res: Response) => {
             source_post_id: source ?? null,
             permalink: permalink ?? null,
             user_agent: req.headers['user-agent'] ?? null,
+            cta_id: cta ? parseInt(cta, 10) : null,
           });
           console.log('Click logged successfully');
+          if (webhookUrl) {
+            await discordLog(webhookUrl, 'INFO', `Click event from: ${postId}`);
+          }
         } catch (err) {
           if (webhookUrl) {
             await discordLog(
