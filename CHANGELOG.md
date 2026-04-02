@@ -1,6 +1,14 @@
 # Changelog
 
 ## [1.1.4] - 2026-04-02
+### Added
+- Per-subreddit configurable comment text — intro, setup, and outro paragraphs can now be overridden per subreddit via a `cta_id` foreign key on the `configs` table, pointing to a new `cta` table. Multiple subreddits can share one CTA version; changing a row updates all linked subreddits instantly with no redeploy
+- Analytics click redirect now deep-links into the native Reddit app on iOS and Android via the `reddit://` URL scheme, avoiding the web overlay. Desktop users receive a plain redirect as before
+
+### Changed
+- `configs` table replaces `allowed_subreddits` as the subreddit config table name
+- Comment text falls back to hardcoded defaults when `cta_id` is null
+
 ### Docs
 - Privacy policy and terms updated to disclose click analytics (redirect links, `clicks` table, User-Agent collection)
 - Privacy policy §2 expanded to list click interaction data collected on link click
