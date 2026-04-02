@@ -12,9 +12,9 @@
     "type-check": "tsc --build"
   },
   "dependencies": {
-    "@devvit/public-api": "0.12.15",
+    "@devvit/public-api": "0.12.16",
     "@supabase/supabase-js": "^2.99.1",
-    "devvit": "^0.12.16",
+    "devvit": "0.12.16",
     "openai": "^6.33.0"
   },
   "devDependencies": {

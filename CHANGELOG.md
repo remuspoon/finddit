@@ -1,6 +1,9 @@
 # Changelog
 
 ## [1.1.4] - 2026-04-02
+### Update dependencies
+- Devvit 0.12.15 -> 0.12.17
+
 ### Added
 - Per-subreddit configurable comment text — intro, setup, and outro paragraphs can now be overridden per subreddit via a `cta_id` foreign key on the `configs` table, pointing to a new `cta` table. Multiple subreddits can share one CTA version; changing a row updates all linked subreddits instantly with no redeploy
 - Analytics click redirect now deep-links into the native Reddit app on iOS and Android via the `reddit://` URL scheme, avoiding the web overlay. Desktop users receive a plain redirect as before
