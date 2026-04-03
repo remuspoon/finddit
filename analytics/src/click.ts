@@ -41,7 +41,11 @@ router.get('/api/click', async (req: Request, res: Response) => {
         try {
           await createClient(supabaseUrl, supabaseKey).from('clicks').insert(payload);
           if (webhookUrl) {
-            await discordLog(webhookUrl, 'INFO', `Click: ${JSON.stringify(payload)}`);
+            if (source === null) {
+              await discordLog(webhookUrl, 'ERROR', `Click with missing source: ${JSON.stringify(payload)}`);
+            } else {
+              await discordLog(webhookUrl, 'INFO', `Click: ${JSON.stringify(payload)}`);
+            }
           }
         } catch (err) {
           if (webhookUrl) {
