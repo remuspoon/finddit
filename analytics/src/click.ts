@@ -27,19 +27,21 @@ router.get('/api/click', async (req: Request, res: Response) => {
   if (supabaseUrl && supabaseKey) {
     const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
+    const payload = {
+      clicked_post_id: postId,
+      position: position ? parseInt(position, 10) : null,
+      source_post_id: source ?? null,
+      permalink: permalink ?? null,
+      user_agent: req.headers['user-agent'] ?? null,
+      cta_id: cta ? parseInt(cta, 10) : null,
+    };
+
     waitUntil(
       (async () => {
         try {
-          await createClient(supabaseUrl, supabaseKey).from('clicks').insert({
-            clicked_post_id: postId,
-            position: position ? parseInt(position, 10) : null,
-            source_post_id: source ?? null,
-            permalink: permalink ?? null,
-            user_agent: req.headers['user-agent'] ?? null,
-            cta_id: cta ? parseInt(cta, 10) : null,
-          });
+          await createClient(supabaseUrl, supabaseKey).from('clicks').insert(payload);
           if (webhookUrl) {
-            await discordLog(webhookUrl, 'INFO', `Click event from: ${postId}`);
+            await discordLog(webhookUrl, 'INFO', `Click: ${JSON.stringify(payload)}`);
           }
         } catch (err) {
           if (webhookUrl) {
