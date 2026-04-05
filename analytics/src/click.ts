@@ -41,13 +41,7 @@ router.get('/api/click', async (req: Request, res: Response) => {
         try {
           await createClient(supabaseUrl, supabaseKey).from('clicks').insert(payload);
           if (webhookUrl) {
-            if (source == null) {
-              await discordLog(webhookUrl, 'ERROR', `Click with missing source | raw query: ${req.url} | parsed: ${JSON.stringify({ postId, position, permalink, source, cta })} | payload: ${JSON.stringify(payload)}`);
-            } else if (payload.user_agent === "Mozilla/5.0 (Windows NT 10.0; Win64; x64; trendictionbot0.5.0; trendiction search; http://www.trendiction.de/bot; please let us know of any problems; web at trendiction.com) Gecko/20100101 Firefox/125.0") {
-              return;
-            } else {
-              await discordLog(webhookUrl, 'INFO', `Click: ${JSON.stringify(payload)}`);
-            }
+            await discordLog(webhookUrl, 'INFO', `Click: ${JSON.stringify(payload)}`);
           }
         } catch (err) {
           if (webhookUrl) {
