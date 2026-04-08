@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.2] - 2026-04-08
+### Added
+- `max_links` column on the `cta` table — controls how many matched links are included in the comment per subreddit. Defaults to 5 when null.
+
+## [1.2.1] - 2026-04-08
+### Added
+- Block-based comment config — comment structure is now defined as a `blocks` JSON array stored in the `cta` table, replacing the fixed `intro`/`setup`/`outro` string columns. Supported block types: `text` (with optional bold/italic), `heading`, `divider`, `link`, `inline` (mixed text and links in one paragraph), `links` (dynamic matched posts list), `list`, and `quote`
+- `InlinePart` named type for inline block parts
+- `migrate_cta_blocks.sql` — migration script to add the `blocks` column and populate CTA id 1
+
+### Changed
+- Automated message footer moved from hardcoded function logic into `DEFAULT_BLOCKS` as an `inline` block, making it fully configurable per subreddit
+- Supabase `getSubredditConfig` now normalises the `cta` join result, handling both array and plain object responses from PostgREST
+
 ## [1.2.0] - 2026-04-02
 ### Update dependencies
 - Devvit 0.12.15 -> 0.12.17

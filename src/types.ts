@@ -1,11 +1,25 @@
+export type InlinePart =
+  | { type: "text"; text: string }
+  | { type: "link"; text: string; url: string };
+
+// A single block in a comment config
+export type Block =
+  | { type: "text"; text: string; bold?: boolean; italic?: boolean }
+  | { type: "heading"; text: string; level?: 1 | 2 | 3 | 4 | 5 | 6 }
+  | { type: "divider" }
+  | { type: "link"; text: string; url: string }
+  | { type: "inline"; parts: InlinePart[] }
+  | { type: "links" }
+  | { type: "list"; items: string[]; ordered?: boolean }
+  | { type: "quote"; text: string };
+
 // A CTA version row, joined from the cta table via cta_id
 export interface CommentConfig {
-  intro?: string;
-  setup?: string;
-  outro?: string;
+  blocks: Block[];
+  max_links?: number | null;
 }
 
-// Config for an approved subreddit, fetched from the configs table
+// Config for an approved subreddit, fe tched from the configs table
 export interface SubredditConfig {
   subreddit: string;
   vdb_name: string;

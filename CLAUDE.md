@@ -7,7 +7,7 @@ A Devvit app that runs on Reddit. When a new post is created, it fetches an Open
 ### Devvit app (`src/`)
 - `main.ts` — Devvit trigger (`PostCreate`). Orchestrates the full pipeline: settings → config → flair filter → embedding → VDB query → Reddit checks → comment.
 - `supabase.ts` — All Supabase interactions: fetching subreddit config, querying the vector DB, logging query events, tagging deleted posts.
-- `comment.ts` — Builds the richtext comment using Devvit's `RichTextBuilder`. Comment text is configurable per subreddit via the `cta` join on the configs table.
+- `comment.ts` — Builds the richtext comment using Devvit's `RichTextBuilder`. Comment structure is defined as a `blocks` array (type `Block[]`) fetched from the `cta` table. Supported block types: `text`, `heading`, `divider`, `link`, `inline`, `links`, `list`, `quote`. Falls back to `DEFAULT_BLOCKS` when no config is set.
 - `discord.ts` — `DiscordLogger` class. Sends INFO/WARN/ERROR messages to a Discord webhook. Used for observability.
 - `openai.ts` — Fetches embeddings from OpenAI.
 - `types.ts` — All shared TypeScript interfaces and types.
@@ -29,6 +29,7 @@ A lightweight Express app deployed on Vercel. Handles click-tracking redirects f
 ## Supabase
 
 - `configs` table — allowlist of subreddits with their VDB name, analytics URL, and optional CTA config (joined via `cta_id`).
+- `cta` table — comment config rows. Each row has a `blocks` jsonb column defining the comment structure as a `Block[]` array, and an optional `max_links` integer capping how many result links appear in the comment (defaults to 5). Multiple subreddits can share one row. The old `intro`/`setup`/`outro` columns still exist but are superseded by `blocks`.
 - `clicks` table — written by the analytics service. Stores per-click records: clicked post ID, position (0–4), source post ID, permalink, User-Agent, and CTA ID. No usernames or Reddit user IDs.
 - `query_events` table — written by the Devvit app via `log_query_event` RPC. One row per `PostCreate` trigger.
 - `match_documents_mental_health` RPC — vector similarity search. Returns `VDBMatchResult[]`.
@@ -67,5 +68,5 @@ A lightweight Express app deployed on Vercel. Handles click-tracking redirects f
 - Posts not in the `configs` allowlist are silently skipped.
 - Flair filtering is optional; if `TARGET_FLAIRS` setting is set, only matching flairs are processed.
 - For crossposts, the parent post's body is fetched as a fallback.
-- Up to 5 valid links are included in the comment. Deleted/removed posts are tagged in Supabase and skipped.
+- Up to 5 valid links are included in the comment (configurable via `cta.max_links`). Deleted/removed posts are tagged in Supabase and skipped.
 - Click URLs are routed through `analytics_url` with `postId`, `position`, `permalink`, `source`, and optional `cta` params.

@@ -11,15 +11,16 @@ export async function getSubredditConfig(
 ): Promise<SubredditConfig | null> {
   const { data, error } = await supabase
     .from("configs")
-    .select("subreddit, vdb_name, analytics_url, cta_id, cta:cta_id(intro, setup, outro)")
+    .select("subreddit, vdb_name, analytics_url, cta_id, cta:cta_id(blocks, max_links)")
     .eq("subreddit", subreddit)
     .single();
 
   if (error || !data) {
     return null;
   }
-
-  return data as SubredditConfig;
+  // Supabase returns foreign key joins as an array or plain object depending on relationship type.
+  const cta = Array.isArray(data.cta) ? data.cta[0] ?? null : data.cta ?? null;
+  return { ...data, cta } as SubredditConfig;
 }
 
 export async function querySupabaseVDB(
