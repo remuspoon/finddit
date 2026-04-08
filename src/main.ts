@@ -174,7 +174,8 @@ Devvit.addTrigger({
             matchLog.push({ post_id: postId, permalink, similarity, status: "deleted" });
             continue;
           }
-          if (validLinks.length < 5) {
+          const maxLinks = subredditConfig.cta?.max_links ?? 5;
+          if (validLinks.length < maxLinks) {
             const ctaParam = subredditConfig.cta_id != null ? `&cta=${subredditConfig.cta_id}` : "";
             const clickUrl = `${subredditConfig.analytics_url}/api/click?postId=${encodeURIComponent(postId)}&position=${validLinks.length}&permalink=${encodeURIComponent(permalink)}&source=${encodeURIComponent(event.post!.id!)}${ctaParam}`;
             validLinks.push({ title: matchedPost.title || postId, url: clickUrl, similarity });
@@ -206,6 +207,35 @@ Devvit.addTrigger({
       await log?.info(`${postId}: ${candidates.length} candidates, ${deletedPostIds.length} deleted, ${validLinks.length} valid — scores: [${scoresStr}]`);
 
       // ------------------------------
+      // Posting comment
+      // ------------------------------
+
+      if (validLinks.length === 0) {
+        await log?.warn(`No valid links for ${postId}, skipping comment`);
+        await logQueryEvent(supabase, {
+          triggerPostId: postId,
+          subreddit: subreddit,
+          triggerPostFlair: event.post?.linkFlair?.text ?? null,
+          ctaId: subredditConfig.cta_id,
+          candidatesCount: candidates.length,
+          deletedCount: deletedPostIds.length,
+          validCount: validLinks.length,
+          commentPosted: false,
+          matches: matchLog,
+        }).catch((err) => log?.error(`Failed to log query event: ${formatError(err)}`));
+        return;
+      }
+
+      const richtext = buildCommentRichtext(validLinks, subredditConfig.cta);
+
+      await post.addComment({
+        richtext,
+        runAs: "APP",
+      });
+
+      await log?.info(`Comment posted on ${postId} with ${validLinks.length} links`);
+
+      // ------------------------------
       // Log query event to Supabase
       // ------------------------------
 
@@ -218,30 +248,12 @@ Devvit.addTrigger({
           candidatesCount: candidates.length,
           deletedCount: deletedPostIds.length,
           validCount: validLinks.length,
-          commentPosted: validLinks.length > 0,
+          commentPosted: true,
           matches: matchLog,
         });
       } catch (err) {
         await log?.error(`Failed to log query event: ${formatError(err)}`);
       }
-
-      // ------------------------------
-      // Posting comment
-      // ------------------------------
-
-      if (validLinks.length === 0) {
-        await log?.warn(`No valid links for ${postId}, skipping comment`);
-        return;
-      }
-
-      const richtext = buildCommentRichtext(validLinks, subredditConfig.cta);
-
-      await post.addComment({
-        richtext,
-        runAs: "APP",
-      });
-
-      await log?.info(`Comment posted on ${postId} with ${validLinks.length} links`);
     } catch (err) {
       await log?.error(`Failed to post comment on ${postId}: ${formatError(err)}`);
     }

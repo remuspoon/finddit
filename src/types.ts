@@ -16,6 +16,7 @@ export type Block =
 // A CTA version row, joined from the cta table via cta_id
 export interface CommentConfig {
   blocks: Block[];
+  max_links?: number | null;
 }
 
 // Config for an approved subreddit, fe tched from the configs table
