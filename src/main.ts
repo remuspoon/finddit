@@ -3,7 +3,7 @@ import { buildCommentRichtext } from "./comment.js";
 import { DiscordLogger } from "./discord.js";
 import { getOpenAIEmbedding } from "./openai.js";
 import { getSupabaseClient, getSubredditConfig, querySupabaseVDB, tagDeletedSupabasePosts, logQueryEvent } from "./supabase.js";
-import { MatchLogEntry, ValidLink, VDBMatchResult } from "./types.js";
+import { MatchCandidate, MatchLogEntry, ValidLink, VDBMatchResult } from "./types.js";
 
 function formatError(err: unknown): string {
   if (err instanceof Error) return err.message;
@@ -124,7 +124,6 @@ Devvit.addTrigger({
       // Embedding and Querying VDB
       // ------------------------------
 
-      // 1) Get embedding from OpenAI
       let embedding: number[];
       try {
         embedding = await getOpenAIEmbedding(queryText, openaiApiKey);
@@ -146,46 +145,47 @@ Devvit.addTrigger({
       // Processing matches
       // ------------------------------
 
-      const candidates = Array.isArray(matches)
-        ? matches.filter(
-            (row) =>
-              typeof row.metadata?.permalink === "string" &&
-              row.metadata.permalink.trim().length > 0 &&
-              typeof row.metadata?.post_id === "string"
-          )
-        : [];
+      const candidates: MatchCandidate[] = matches
+        .filter(
+          (row): row is VDBMatchResult & { metadata: { permalink: string; post_id: string } } =>
+            typeof row.metadata?.permalink === "string" &&
+            row.metadata.permalink.trim().length > 0 &&
+            typeof row.metadata?.post_id === "string"
+        )
+        .map((row) => ({
+          similarity: row.similarity ?? 0,
+          post_id: row.metadata.post_id,
+          permalink: row.metadata.permalink,
+        }));
 
       const validLinks: ValidLink[] = [];
       const deletedPostIds: string[] = [];
       const matchLog: MatchLogEntry[] = [];
 
-      for (const row of candidates) {
-        const postId = row.metadata!.post_id!;
-        const permalink = row.metadata!.permalink!;
-        const similarity = row.similarity ?? 0;
+      for (const { post_id: matchPostId, permalink, similarity } of candidates) {
 
         // Check if the post is deleted or removed
         try {
-          const matchedPost = await context.reddit.getPostById(postId);
+          const matchedPost = await context.reddit.getPostById(matchPostId);
           const author = matchedPost.authorName ?? "";
           const body = matchedPost.body ?? "";
           if (author === "[deleted]" || body === "[deleted]" || body === "[removed]") {
-            deletedPostIds.push(postId);
-            matchLog.push({ post_id: postId, permalink, similarity, status: "deleted" });
+            deletedPostIds.push(matchPostId);
+            matchLog.push({ post_id: matchPostId, permalink, similarity, status: "deleted" });
             continue;
           }
           const maxLinks = subredditConfig.cta?.max_links ?? 5;
           if (validLinks.length < maxLinks) {
             const ctaParam = subredditConfig.cta_id != null ? `&cta=${subredditConfig.cta_id}` : "";
-            const clickUrl = `${subredditConfig.analytics_url}/api/click?postId=${encodeURIComponent(postId)}&position=${validLinks.length}&permalink=${encodeURIComponent(permalink)}&source=${encodeURIComponent(event.post!.id!)}${ctaParam}`;
-            validLinks.push({ title: matchedPost.title || postId, url: clickUrl, similarity });
-            matchLog.push({ post_id: postId, permalink, similarity, status: "valid" });
+            const clickUrl = `${subredditConfig.analytics_url}/api/click?postId=${encodeURIComponent(matchPostId)}&position=${validLinks.length}&permalink=${encodeURIComponent(permalink)}&source=${encodeURIComponent(event.post!.id!)}${ctaParam}`;
+            validLinks.push({ title: matchedPost.title || matchPostId, url: clickUrl, similarity });
+            matchLog.push({ post_id: matchPostId, permalink, similarity, status: "valid" });
           } else {
-            matchLog.push({ post_id: postId, permalink, similarity, status: "overflow" });
+            matchLog.push({ post_id: matchPostId, permalink, similarity, status: "overflow" });
           }
-        } catch {
-          deletedPostIds.push(postId);
-          matchLog.push({ post_id: postId, permalink, similarity, status: "deleted" });
+        } catch (err) {
+          deletedPostIds.push(matchPostId);
+          matchLog.push({ post_id: matchPostId, permalink, similarity, status: "deleted" });
           continue;
         }
       }
