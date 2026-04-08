@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.2] - 2026-04-08
+### Added
+- `max_links` column on the `cta` table — controls how many matched links are included in the comment per subreddit. Defaults to 5 when null.
+
 ## [1.2.1] - 2026-04-08
 ### Added
 - Block-based comment config — comment structure is now defined as a `blocks` JSON array stored in the `cta` table, replacing the fixed `intro`/`setup`/`outro` string columns. Supported block types: `text` (with optional bold/italic), `heading`, `divider`, `link`, `inline` (mixed text and links in one paragraph), `links` (dynamic matched posts list), `list`, and `quote`
