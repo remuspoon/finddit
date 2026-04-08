@@ -18,8 +18,9 @@ export async function getSubredditConfig(
   if (error || !data) {
     return null;
   }
-
-  return data as SubredditConfig;
+  // Supabase returns foreign key joins as an array or plain object depending on relationship type.
+  const cta = Array.isArray(data.cta) ? data.cta[0] ?? null : data.cta ?? null;
+  return { ...data, cta } as SubredditConfig;
 }
 
 export async function querySupabaseVDB(
