@@ -1,1 +1,0 @@
-{"root":["./analytics/index.ts","./analytics/src/click.ts","./analytics/src/discord.ts","./src/comment.ts","./src/discord.ts","./src/main.ts","./src/openai.ts","./src/supabase.ts","./src/types.ts"],"errors":true,"version":"5.8.3"}
