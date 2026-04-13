@@ -11,7 +11,7 @@ export async function getSubredditConfig(
 ): Promise<SubredditConfig | null> {
   const { data, error } = await supabase
     .from("configs")
-    .select("subreddit, vdb_name, analytics_url, cta_id, cta:cta_id(blocks, max_links)")
+    .select("subreddit, vdb_name, analytics_url, cta_id, match_threshold, match_count, cta:cta_id(blocks, max_links)")
     .eq("subreddit", subreddit)
     .single();
 
@@ -26,17 +26,14 @@ export async function getSubredditConfig(
 export async function querySupabaseVDB(
   supabase: ReturnType<typeof getSupabaseClient>,
   embedding: number[],
-  options?: {
-    matchThreshold?: number;
-    matchCount?: number;
-  }
+  config: SubredditConfig,
 ) {
-  const { matchThreshold = 0.5, matchCount = 20 } = options ?? {};
 
-  const { data, error } = await supabase.rpc("match_documents_mental_health", {
+  const { data, error } = await supabase.rpc("match_documents", {
     query_embedding: embedding,
-    match_threshold: matchThreshold,
-    match_count: matchCount,
+    match_threshold: config.match_threshold,
+    match_count: config.match_count,
+    vdb_name: config.vdb_name,
   });
 
   if (error) {
@@ -70,9 +67,11 @@ export async function logQueryEvent(
 export async function tagDeletedSupabasePosts(
   supabase: ReturnType<typeof getSupabaseClient>,
   postIds: string[],
+  config: SubredditConfig,
 ) {
-  const { error } = await supabase.rpc("tag_deleted_posts_mental_health", {
+  const { error } = await supabase.rpc("tag_deleted_posts", {
     post_ids: postIds,
+    vdb_name: config.vdb_name,
   });
 
   if (error) {

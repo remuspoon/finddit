@@ -19,13 +19,15 @@ export interface CommentConfig {
   max_links?: number | null;
 }
 
-// Config for an approved subreddit, fe tched from the configs table
+// Config for an approved subreddit, fetched from the configs table
 export interface SubredditConfig {
   subreddit: string;
   vdb_name: string;
   analytics_url: string;
   cta_id: number | null;
   cta: CommentConfig | null;
+  match_threshold: number;
+  match_count: number;
 }
 
 // A raw match returned from the Supabase vector DB
