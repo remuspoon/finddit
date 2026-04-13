@@ -1,7 +1,8 @@
 # Changelog
 
-## [1.2.3] - 2026-04-13
+## [1.2.4] - 2026-04-13
 ### Changed
+- Update to `Devvit 0.12.18`
 - `match_threshold` and `match_count` are now stored per-subreddit in the `configs` table and fetched as part of `SubredditConfig`, replacing the previous hardcoded defaults
 - `querySupabaseVDB` and `tagDeletedSupabasePosts` now call generic RPCs (`match_documents`, `tag_deleted_posts`) that accept a `vdb_name` parameter, replacing the `_mental_health`-suffixed variants
 
