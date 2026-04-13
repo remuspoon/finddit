@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.3] - 2026-04-13
+### Changed
+- `match_threshold` and `match_count` are now stored per-subreddit in the `configs` table and fetched as part of `SubredditConfig`, replacing the previous hardcoded defaults
+- `querySupabaseVDB` and `tagDeletedSupabasePosts` now call generic RPCs (`match_documents`, `tag_deleted_posts`) that accept a `vdb_name` parameter, replacing the `_mental_health`-suffixed variants
+
 ## [1.2.2] - 2026-04-08
 ### Added
 - `max_links` column on the `cta` table — controls how many matched links are included in the comment per subreddit. Defaults to 5 when null.

@@ -134,7 +134,7 @@ Devvit.addTrigger({
 
       let matches: VDBMatchResult[] = [];
       try {
-        matches = await querySupabaseVDB(supabase, embedding);
+        matches = await querySupabaseVDB(supabase, embedding, subredditConfig);
         await log?.info(`Supabase returned ${matches.length} matches`);
       } catch (err) {
         await log?.error(`Supabase match_documents error: ${formatError(err)}`);
@@ -196,7 +196,7 @@ Devvit.addTrigger({
 
       if (deletedPostIds.length > 0) {
         try {
-          await tagDeletedSupabasePosts(supabase, deletedPostIds);
+          await tagDeletedSupabasePosts(supabase, deletedPostIds, subredditConfig);
           await log?.info(`Tagged ${deletedPostIds.length} deleted posts`);
         } catch (err) {
           await log?.error(`Failed to tag deleted posts: ${formatError(err)}`);
