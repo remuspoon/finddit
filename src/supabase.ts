@@ -11,7 +11,7 @@ export async function getSubredditConfig(
 ): Promise<SubredditConfig | null> {
   const { data, error } = await supabase
     .from("configs")
-    .select("subreddit, vdb_name, analytics_url, cta_id, match_threshold, match_count, cta:cta_id(blocks, max_links)")
+    .select("subreddit, vdb_name, analytics_url, cta_id, match_threshold, match_count, query_subreddit_allowlist, cta:cta_id(blocks, max_links)")
     .eq("subreddit", subreddit)
     .single();
 
@@ -34,6 +34,7 @@ export async function querySupabaseVDB(
     match_threshold: config.match_threshold,
     match_count: config.match_count,
     vdb_name: config.vdb_name,
+    query_subreddit_allowlist: config.query_subreddit_allowlist,
   });
 
   if (error) {

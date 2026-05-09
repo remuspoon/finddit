@@ -28,12 +28,14 @@ export interface SubredditConfig {
   cta: CommentConfig | null;
   match_threshold: number;
   match_count: number;
+  query_subreddit_allowlist: string[] | null;
 }
 
 // A raw match returned from the Supabase vector DB
 export interface VDBMatchResult {
   similarity?: number;
   metadata?: {
+    subreddit?: string;
     permalink?: string;
     post_id?: string;
   };
