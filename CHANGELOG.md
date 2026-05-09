@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.5] — 2026-05-09
+
+### Added
+- `query_subreddit_allowlist` field on `SubredditConfig` — VDB query results can now be filtered to posts from specific subreddits, passed directly to the `match_documents` RPC (`supabase.ts`, `types.ts`)
+- `subreddit` field added to `VDBMatchResult.metadata` to support allowlist filtering on returned matches (`types.ts`)
+
+### Fixed
+- Dedup check replaced with an atomic `SET NX` + `expire` pattern (`main.ts`). The previous `get`-then-`set` approach had a race window where two concurrent `PostCreate` deliveries could both pass the check; the new approach is fully atomic. Devvit's Redis returns `""` on NX failure, so the guard now uses `!result` instead of a `=== null` check.
+
+### Changed
+- Privacy policy clarified to note that the vector index stores only numerical embeddings and post IDs — no post titles, body text, or usernames — and that embeddings cannot be reversed to recover post text (`PRIVACY.md`)
+- Privacy policy updated to cite OpenAI's API platform policy confirming API data is not used for model training by default (`PRIVACY.md`)
+- `match_documents` RPC name corrected in privacy policy (was `match_documents_mental_health`) (`PRIVACY.md`)
+
 ## [1.2.4] - 2026-04-13
 ### Changed
 - Update to `Devvit 0.12.18`

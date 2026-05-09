@@ -35,7 +35,7 @@ A lightweight Express app deployed on Vercel. Handles click-tracking redirects f
 - `query_events` table — written by the Devvit app via `log_query_event` RPC. One row per `PostCreate` trigger.
 - `match_documents` RPC — vector similarity search. Returns `VDBMatchResult[]`.
 - `log_query_event` RPC — logs each trigger event with match stats.
-- `tag_deleted_posts_mental_health` RPC — marks posts as deleted in the VDB.
+- `tag_deleted_posts` RPC — marks posts as deleted in the VDB.
 
 ### `clicks` schema
 | column | type | notes |

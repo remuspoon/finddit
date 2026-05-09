@@ -1,6 +1,5 @@
 .env
 node_modules
-.claude
-/rules/
 tsconfig.tsbuildinfo
 setup/*
+.claude/settings.local.json
