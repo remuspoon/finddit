@@ -2,7 +2,7 @@
 
 **App:** finddit
 
-**Last updated:** April 03, 2026
+**Last updated:** May 09, 2026
 
 ## 1. Overview
 
@@ -45,7 +45,7 @@ Post text is sent to the following third-party services:
 ### OpenAI
 - **What is sent:** The post title and body text
 - **Why:** To generate a vector embedding (a numerical representation of the text's meaning) for similarity search
-- **AI training:** Reddit data is not used to train, fine-tune, or improve any AI or machine learning model. The OpenAI API is used for inference only. OpenAI's own data usage is governed by their privacy policy.
+- **AI training:** Reddit data is not used to train, fine-tune, or improve any AI or machine learning model. The OpenAI API is used for inference only. Per [OpenAI's API platform privacy policy](https://openai.com/enterprise-privacy/), data submitted via the API is not used to train OpenAI models by default.
 - **Data retention:** Governed by [OpenAI's Privacy Policy](https://openai.com/policies/privacy-policy)
 
 ### Supabase
@@ -64,7 +64,7 @@ Supabase is used for two distinct operations:
 - **Why:** To measure engagement with suggestions and identify which result positions are most useful, informing future improvements to the ranking and matching logic.
 - **What is stored:** Click records in the `clicks` table. No usernames, Reddit user IDs, or account information are stored.
 
-**What is stored in the database:** Embeddings and Reddit permalinks of historical posts only. No usernames, user IDs, or personal information are stored in the index.
+**What is stored in the database:** Vector embeddings and Reddit post IDs and permalinks of historical posts only. No post titles, body text, usernames, user IDs, or personal information are stored in the index. Because no post content is retained — only numerical embeddings and post IDs — a post deletion does not require purging content from our systems; the embedding conveys no readable information about the author or their post text.
 
 - **Data retention:** Governed by [Supabase's Privacy Policy](https://supabase.com/privacy)
 
@@ -91,7 +91,7 @@ Supabase is used for two distinct operations:
 
 We respect redditors' right to deletion. You may request deletion of any data associated with your content by opening an issue at https://github.com/remuspoon/finddit/issues.
 
-- **Post/comment deletions:** If a post or comment is deleted from Reddit, or gains protected status, any associated data (including embeddings stored in Supabase derived from that content) will be removed from our systems as soon as possible.
+- **Post/comment deletions:** The app does not store post titles, body text, or any content derived from post text in a human-readable form. The only data retained in Supabase is the vector embedding (a numerical array with no readable content), the post ID, and the permalink. Embeddings cannot be reversed to recover post text. Because no identifiable content is stored, deletion of a post from Reddit does not require deletion of data from our systems. As an additional measure, when a deleted post surfaces as a match candidate during a query, it is automatically tagged as deleted and excluded from future results.
 - **Click records:** Click interaction records (post IDs, link position, User-Agent) are stored in Supabase. These can be deleted on request. They contain no usernames or account identifiers, but may be traceable to a post author via post ID.
 - **On request:** Any user may request deletion of their data at any time by contacting us at the link above.
 
