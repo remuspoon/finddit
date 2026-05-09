@@ -84,13 +84,14 @@ Devvit.addTrigger({
       return;
     }
 
-    // Devvit delivers PostCreate at-least-once — deduplicate with Redis
+    // Devvit delivers PostCreate at-least-once — deduplicate with Redis (SET NX is atomic)
+    // 
     const dedupKey = `finddit:processed:${postId}`;
-    const existing = await context.redis.get(dedupKey);
-    if (existing !== null && existing !== undefined) {
+    const dedupResult = await context.redis.set(dedupKey, "1", { nx: true });
+    if (!dedupResult) {
       return;
     }
-    await context.redis.set(dedupKey, "1", { expiration: new Date(Date.now() + 10 * 60 * 1000) });
+    await context.redis.expire(dedupKey, 600);
 
     // ------------------------------
     // Subreddit allowlist + VDB config

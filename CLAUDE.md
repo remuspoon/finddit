@@ -66,7 +66,7 @@ A lightweight Express app deployed on Vercel. Handles click-tracking redirects f
 
 ## Key behaviours
 
-- Devvit delivers `PostCreate` at-least-once. Deduplication uses Redis (`get` + `set` with 10-min TTL on key `finddit:processed:{postId}`).
+- Devvit delivers `PostCreate` at-least-once. Deduplication uses atomic `SET NX` + `expire(key, 600)` on key `finddit:processed:{postId}`. Devvit's Redis returns `""` (empty string) when NX fails — check with `!result`, not `=== null`.
 - Posts not in the `configs` allowlist are silently skipped.
 - Flair filtering is optional; if `TARGET_FLAIRS` setting is set, only matching flairs are processed.
 - For crossposts, the parent post's body is fetched as a fallback.
