@@ -51,7 +51,7 @@ Post text is sent to the following third-party services:
 ### Supabase
 Supabase is used for two distinct operations:
 
-**1. Similarity search (`match_documents_mental_health` RPC)**
+**1. Similarity search (`match_documents` RPC)**
 - **What is sent:** The vector embedding only (a numerical array — not the original post text)
 - **Why:** To perform a nearest-neighbor search against a pre-indexed database of Reddit posts
 
