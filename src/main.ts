@@ -4,15 +4,11 @@ import { DiscordLogger } from "./discord.js";
 import { getOpenAIEmbedding } from "./openai.js";
 import { getSupabaseClient, getSubredditConfig, querySupabaseVDB, tagDeletedSupabasePosts, logQueryEvent } from "./supabase.js";
 import { MatchCandidate, MatchLogEntry, ValidLink, VDBMatchResult } from "./types.js";
-
-function formatError(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  return JSON.stringify(err);
-}
-
+import { formatError } from "./utils.js";
 
 Devvit.configure({
   redditAPI: true,
+  redis: true,
   http: { domains: ["api.openai.com", "cjtfquaaqzpaustuniiy.supabase.co", "discord.com"] },
 });
 
@@ -38,10 +34,25 @@ Devvit.addSettings([
     scope: SettingScope.App,
     isSecret: true,
   },
+  // Deprecated: Delete in next release after all users have updated
   {
     type: "string",
     name: "DISCORD_WEBHOOK_URL",
     label: "Discord Webhook URL",
+    scope: SettingScope.App,
+    isSecret: true,
+  },
+  {
+    type: "string",
+    name: "DISCORD_INFO_LOG_WEBHOOK_URL",
+    label: "Discord Webhook URL for info logs",
+    scope: SettingScope.App,
+    isSecret: true,
+  },
+  {
+    type: "string",
+    name: "DISCORD_ERROR_LOG_WEBHOOK_URL",
+    label: "Discord Webhook URL for error logs",
     scope: SettingScope.App,
     isSecret: true,
   },
@@ -56,11 +67,12 @@ Devvit.addSettings([
 Devvit.addTrigger({
   event: "PostCreate",
   onEvent: async (event, context) => {
-    const discordWebhookUrl = (await context.settings.get("DISCORD_WEBHOOK_URL"))?.toString()?.trim();
     const supabaseUrl = (await context.settings.get("SUPABASE_URL"))?.toString()?.trim();
     const supabaseApiKey = (await context.settings.get("SUPABASE_API_KEY"))?.toString()?.trim();
     const openaiApiKey = (await context.settings.get("OPENAI_API_KEY"))?.toString()?.trim();
-    const log = discordWebhookUrl ? new DiscordLogger(discordWebhookUrl) : null;
+    const infoUrl = (await context.settings.get("DISCORD_INFO_LOG_WEBHOOK_URL"))?.toString()?.trim();
+    const errorUrl = (await context.settings.get("DISCORD_ERROR_LOG_WEBHOOK_URL"))?.toString()?.trim();
+    const log = (infoUrl || errorUrl) ? new DiscordLogger({ infoUrl, errorUrl }) : null;
 
     if (!supabaseApiKey || !openaiApiKey || !supabaseUrl) {
       await log?.error("Missing SUPABASE_API_KEY or OPENAI_API_KEY in app settings");
@@ -71,6 +83,14 @@ Devvit.addTrigger({
     if (!postId) {
       return;
     }
+
+    // Devvit delivers PostCreate at-least-once — deduplicate with Redis
+    const dedupKey = `finddit:processed:${postId}`;
+    const existing = await context.redis.get(dedupKey);
+    if (existing !== null && existing !== undefined) {
+      return;
+    }
+    await context.redis.set(dedupKey, "1", { expiration: new Date(Date.now() + 10 * 60 * 1000) });
 
     // ------------------------------
     // Subreddit allowlist + VDB config
