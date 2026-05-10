@@ -5,7 +5,7 @@ import { DiscordLogger } from "./services/discord.js";
 import { getOpenAIEmbedding } from "./services/openai.js";
 import { getSupabaseClient, getSubredditConfig, querySupabaseVDB, tagDeletedSupabasePosts, logQueryEvent } from "./services/supabase.js";
 import { MatchCandidate, MatchLogEntry, ValidLink, VDBMatchResult } from "./types.js";
-import { formatError } from "./utils.js";
+import { formatError, isValidMatch } from "./utils.js";
 
 Devvit.addTrigger({
   event: "PostCreate",
@@ -110,12 +110,7 @@ Devvit.addTrigger({
       // ------------------------------
 
       const candidates: MatchCandidate[] = matches
-        .filter(
-          (row): row is VDBMatchResult & { metadata: { permalink: string; post_id: string } } =>
-            typeof row.metadata?.permalink === "string" &&
-            row.metadata.permalink.trim().length > 0 &&
-            typeof row.metadata?.post_id === "string"
-        )
+        .filter(isValidMatch)
         .map((row) => ({
           similarity: row.similarity ?? 0,
           post_id: row.metadata.post_id,
@@ -141,7 +136,7 @@ Devvit.addTrigger({
           const maxLinks = subredditConfig.cta?.max_links ?? 5;
           if (validLinks.length < maxLinks) {
             const ctaParam = subredditConfig.cta_id != null ? `&cta=${subredditConfig.cta_id}` : "";
-            const clickUrl = `${subredditConfig.analytics_url}/api/click?postId=${encodeURIComponent(matchPostId)}&position=${validLinks.length}&permalink=${encodeURIComponent(permalink)}&source=${encodeURIComponent(event.post!.id!)}${ctaParam}`;
+            const clickUrl = `${subredditConfig.analytics_url}/api/click?postId=${encodeURIComponent(matchPostId)}&position=${validLinks.length}&permalink=${encodeURIComponent(permalink)}&source=${encodeURIComponent(postId)}${ctaParam}`;
             validLinks.push({ title: matchedPost.title || matchPostId, url: clickUrl, similarity });
             matchLog.push({ post_id: matchPostId, permalink, similarity, status: "valid" });
           } else {
@@ -174,30 +169,16 @@ Devvit.addTrigger({
       // Posting comment
       // ------------------------------
 
+      let commentPosted = false;
+      
       if (validLinks.length === 0) {
         await log?.warn(`No valid links for ${postId}, skipping comment`);
-        await logQueryEvent(supabase, {
-          triggerPostId: postId,
-          subreddit: subreddit,
-          triggerPostFlair: event.post?.linkFlair?.text ?? null,
-          ctaId: subredditConfig.cta_id,
-          candidatesCount: candidates.length,
-          deletedCount: deletedPostIds.length,
-          validCount: validLinks.length,
-          commentPosted: false,
-          matches: matchLog,
-        }).catch((err) => log?.error(`Failed to log query event: ${formatError(err)}`));
-        return;
+      } else {
+        const richtext = buildCommentRichtext(validLinks, subredditConfig.cta);
+        await post.addComment({ richtext, runAs: "APP" });
+        commentPosted = true;
+        await log?.info(`Comment posted on ${postId} with ${validLinks.length} links`);
       }
-
-      const richtext = buildCommentRichtext(validLinks, subredditConfig.cta);
-
-      await post.addComment({
-        richtext,
-        runAs: "APP",
-      });
-
-      await log?.info(`Comment posted on ${postId} with ${validLinks.length} links`);
 
       // ------------------------------
       // Log query event to Supabase
@@ -212,7 +193,7 @@ Devvit.addTrigger({
           candidatesCount: candidates.length,
           deletedCount: deletedPostIds.length,
           validCount: validLinks.length,
-          commentPosted: true,
+          commentPosted,
           matches: matchLog,
         });
       } catch (err) {
