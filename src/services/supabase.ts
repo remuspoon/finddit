@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { VDBMatchResult, QueryEventPayload, SubredditConfig } from "./types.js";
+import { VDBMatchResult, QueryEventPayload, SubredditConfig } from "../types.js";
 
 export function getSupabaseClient(supabaseUrl: string, supabaseKey: string) {
   return createClient(supabaseUrl, supabaseKey);

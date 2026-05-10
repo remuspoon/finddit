@@ -6,12 +6,13 @@ A Devvit app that runs on Reddit. When a new post is created, it fetches an Open
 
 ### Devvit app (`src/`)
 - `main.ts` — Devvit trigger (`PostCreate`). Orchestrates the full pipeline: settings → Redis dedup → config → flair filter → embedding → VDB query → Reddit checks → comment.
-- `supabase.ts` — All Supabase interactions: fetching subreddit config, querying the vector DB, logging query events, tagging deleted posts.
+- `services/supabase.ts` — All Supabase interactions: fetching subreddit config, querying the vector DB, logging query events, tagging deleted posts.
 - `comment.ts` — Builds the richtext comment using Devvit's `RichTextBuilder`. Comment structure is defined as a `blocks` array (type `Block[]`) fetched from the `cta` table. Supported block types: `text`, `heading`, `divider`, `link`, `inline`, `links`, `list`, `quote`. Falls back to `DEFAULT_BLOCKS` when no config is set.
-- `discord.ts` — `DiscordLogger` class. Accepts `{ infoUrl?, errorUrl? }`. INFO routes to `infoUrl`; WARN and ERROR route to `errorUrl`. Used for observability.
+- `services/discord.ts` — `DiscordLogger` class. Accepts `{ infoUrl?, errorUrl? }`. INFO routes to `infoUrl`; WARN and ERROR route to `errorUrl`. Used for observability.
 - `utils.ts` — Shared utilities. Currently exports `formatError()`.
-- `openai.ts` — Fetches embeddings from OpenAI.
+- `services/openai.ts` — Fetches embeddings from OpenAI.
 - `types.ts` — All shared TypeScript interfaces and types.
+- `settings.ts` — Devvit app configuration and settings definitions. Includes a deprecated `DISCORD_WEBHOOK_URL` setting pending removal.
 
 ### Analytics service (`analytics/`)
 A lightweight Express app deployed on Vercel. Handles click-tracking redirects from result links included in app comments.
@@ -21,11 +22,13 @@ A lightweight Express app deployed on Vercel. Handles click-tracking redirects f
 
 ## Conventions
 
-- Keep all Supabase calls in `supabase.ts`, not `main.ts`.
+- Keep all Supabase calls in `services/supabase.ts`, not `main.ts`.
 - Use `formatError()` (defined in `utils.ts`) for all error stringification.
 - Use `log?.method()` pattern — logger is nullable when no webhook URL is configured.
 - No `console.log` in production code (use `DiscordLogger` instead).
 - All types live in `types.ts`.
+- `LogLevel` and `DiscordLoggerOptions` are private implementation details of `services/discord.ts`; they are intentionally not exported to `types.ts`.
+- The analytics service (`analytics/`) has its own independent error-stringification inline (no shared `formatError`). If the analytics service grows, consider extracting a shared utility.
 
 ## Supabase
 
